@@ -767,13 +767,17 @@ local function city_snapshot(region)
     local config=region_config(region)
     if not config or not K.owns_region(region) or not K.bool(p..".IsProvinceCapital") then return nil end
     local city={region=region,expression=p,owned=true,paused=config.paused,profile=config.profile,
-        siege=K.bool(p..".IsUnderSiege"),slots={},capacity=0}
+        siege=K.bool(p..".IsUnderSiege"),slots={},capacity=0,protected_fixed=0}
     local goals={}
     for i=1,10 do
         local goal=(C.state.profiles[config.profile] or {})[i]
         if TK_AUTO_BUILDINGS[goal] then goals[#goals+1]=goal end
     end
     local size=K.number(p..".RegionSlotList.Size")
+    -- SINGLE PASS ONLY. Do not pre-scan a hybrid capital: CCO settlement
+    -- queries can become invalid after construction orders in the same pass.
+    -- Protected fixed slots never enter city.slots, so the regular planner
+    -- cannot demolish, convert or cancel them.
     for i=0,size-1 do
         local slot=p..".RegionSlotList.At("..i..")"
         if K.bool(slot..".IsPrimary") then
@@ -781,31 +785,30 @@ local function city_snapshot(region)
         elseif K.bool(slot..".IsVisible") then
             local existing=K.read(slot..".BuildingContext.BuildingLevelRecordContext.Key")
             local data=existing and TK_AUTO_BUILDINGS[existing]
-            -- Capacity must survive demolition. The global UI-group query used
-            -- previously had no stored province and made every empty plot vanish.
-            -- Include unknown foreign districts too; fixed ports/resources stay
-            -- outside templates and cannot be demolished by the district planner.
             local empty=K.bool(slot..".IsEmpty")
             local fixed=data and data.fixed
             if not empty and not data then
                 local record=slot..".BuildingContext.BuildingLevelRecordContext"
-                fixed=fixed_chains[K.read(record..".BuildingChainRecordContext.Key")] or K.bool(record..".IsResourceBuilding")
+                fixed=fixed_chains[K.read(record..".BuildingChainRecordContext.Key")] or
+                    K.bool(record..".IsResourceBuilding")
             end
-            if not fixed and (empty or not data or data.template_slot) then
+            if fixed then
+                city.protected_fixed=city.protected_fixed+1
+                K.log("HYBRID_PROTECT region="..region.." slot="..i.." key="..tostring(existing))
+            elseif empty or not data or data.template_slot then
                 local item=read_slot(p,i,goals)
                 if not item.fixed_only then city.slots[#city.slots+1]=item end
             end
         end
     end
-    -- Unlock points are not slot counts (the vanilla city uses two points per
-    -- district). Visible district slots are the game's actual current capacity.
     city.capacity=#city.slots
-    -- Resource and bandit addon slots are not included in a commandery capital template.
-    local active={}
-    for _,slot in ipairs(city.slots) do
-        if #active<city.capacity then active[#active+1]=slot end
+    if city.protected_fixed>0 then
+        -- A converted resource capital has one reserved fixed plot. Its
+        -- lowest-priority tenth goal (palace) must not displace a protected
+        -- resource or consume a non-existent district slot.
+        K.log("HYBRID_CAPITAL region="..region.." protected="..city.protected_fixed..
+            " district_slots="..city.capacity.." goals_limit=9")
     end
-    city.slots=active
     return city
 end
 C.snapshot=city_snapshot
@@ -1170,11 +1173,26 @@ local function process_next(run)
             if ok then plan,reason=result,why
             else reason="gate_waiting";K.warn("gate_plan:"..region,"Gate planner failed: "..tostring(result)) end
         end
-    elseif fixed then plan,reason=K.next_fixed_action(city,TK_AUTO_BUILDINGS,cash,food)
+    elseif fixed then
+        if K.bool(K.settlement(region)..".IsProvinceCapital") then
+            plan,reason=nil,"hybrid_capital_fixed_protected"
+        else
+            plan,reason=K.next_fixed_action(city,TK_AUTO_BUILDINGS,cash,food)
+        end
     elseif county then
         plan,reason=K.next_city_action(city,county_settings()[city.element] or {},TK_AUTO_BUILDINGS,
             cash,food,false,C.state.build_focus,C.state.build_sort)
-    else plan,reason=K.next_city_action(city,C.state.profiles[config.profile] or {},TK_AUTO_BUILDINGS,cash,food,C.state.auto_growth,C.state.build_focus,C.state.build_sort) end
+    else
+        local template=C.state.profiles[config.profile] or {}
+        if (city.protected_fixed or 0)>0 then
+            -- Copy, never mutate the saved player's template.
+            local limited={}
+            for i=1,9 do limited[i]=template[i] end
+            template=limited
+        end
+        plan,reason=K.next_city_action(city,template,TK_AUTO_BUILDINGS,cash,food,
+            C.state.auto_growth,C.state.build_focus,C.state.build_sort)
+    end
     C.status[region]=reason or (plan and plan.kind) or "waiting"
     run.reasons[region]=C.status[region]
     if not plan then
