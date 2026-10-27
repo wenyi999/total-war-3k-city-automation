@@ -641,9 +641,14 @@ local function render_panel()
     local row1,row2=y+44,y+80
     -- Switching any of these on should take effect now, not at the next turn, and
     -- every one of them re-runs so the panel shows what changed.
-    button(panel,"tk_auto_master",state.enabled and K.L("master_on") or K.L("master_off"),x,row1,178,30,function()
-        state.enabled=not state.enabled;U.refresh()
-        if state.enabled then C().request_run("master_on") else C().ui_message=K.L("run_off");U.refresh() end
+    button(panel,"tk_auto_master",C().session.auto_enabled and K.L("master_on") or K.L("master_off"),x,row1,178,30,function()
+        C().session.auto_enabled=not C().session.auto_enabled
+        K.log("SESSION_AUTO_"..(C().session.auto_enabled and "ON" or "OFF").." via master toggle")
+        U.refresh()
+        if C().session.auto_enabled then C().request_run("master_on") else
+            C().requests=C().requests+1; C().pending=false
+            C().ui_message=K.L("run_off");U.refresh()
+        end
     end)
     button(panel,"tk_auto_growth",state.auto_growth and K.L("growth_auto") or K.L("growth_manual"),x+186,row1,196,30,function()
         state.auto_growth=not state.auto_growth;U.refresh();C().request_run("growth_toggle")
@@ -705,6 +710,9 @@ local function render_panel()
     end
     if U.mode~="county" then
     button(panel,"tk_auto_global_recommended","一键全图推荐",x+410,y+185,154,28,function()
+        -- Clicking this explicit action opts in to construction for THIS session.
+        C().session.auto_enabled=true
+        K.log("SESSION_AUTO_ON by explicit global recommended click")
         local count=C().apply_recommended_everywhere()
         U.message="全图推荐已设置：主城推荐/资源县五行/关隘独立；更新 "..tostring(count).." 项"
         U.profile="recommended";U.refresh();C().request_run("global_recommended")

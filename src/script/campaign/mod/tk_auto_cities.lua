@@ -1,10 +1,10 @@
 local K = TK_AUTO
-local C = {version="0.1.49",state={version=1,enabled=true,
+local C = {version="0.1.49",state={version=1,enabled=false,
     -- Two separate orderings: the building pair ranks the entries of one city's
     -- template, the city key ranks cities against each other.
     build_sort="income_high",build_focus="all",city_sort="small",reserve_money=0,
     reserve_food=0,auto_growth=true,auto_gate=true,profiles={agriculture={},commerce={},industry={},other={},recommended={},gate={}},cities={},reservations={}},
-    busy=false,submitted={},demolish_order={},status={},run=nil,requests=0}
+    busy=false,submitted={},demolish_order={},status={},run=nil,requests=0,session={auto_enabled=false,epoch=0}}
 TK_AUTO_CITIES=C
 local SAVE="tk_auto_cities_v1"
 -- EDIT HERE: Building LEVEL IDs, not translated in-game names.
@@ -393,10 +393,29 @@ local function has_targets(template)
     return false
 end
 
-cm:add_saving_game_callback(function(context) cm:save_named_value(SAVE,C.state,context) end)
+-- Do not persist the execution switch: saving copies only configuration.
+cm:add_saving_game_callback(function(context)
+    local persistent={}
+    for key,value in pairs(C.state) do
+        if key~="enabled" then persistent[key]=value end
+    end
+    cm:save_named_value(SAVE,persistent,context)
+end)
 cm:add_loading_game_callback(function(context)
     local saved=cm:load_named_value(SAVE,C.state,context)
     if type(saved)=="table" and saved.version==1 then C.state=saved end
+    -- Session-only opt-in: templates and city choices persist; construction
+    -- is NEVER automatically re-enabled by loading a saved game.
+    C.state.enabled=nil -- legacy save value is not authoritative anymore
+    C.session={auto_enabled=false,epoch=(C.session and C.session.epoch or 0)+1}
+    C.requests=C.requests+1 -- invalidate any old timer callbacks on reload
+    C.force_pending=0
+    C.busy=false
+    C.run=nil
+    C.submitted={}
+    C.pending=false
+    C.rerun=false
+    K.log("SESSION_RESET restored configuration; execution remains OFF and non-persistent")
     ensure_recommended_profile()
     ensure_gate_profile()
     C.state.reservations=C.state.reservations or {}
@@ -1186,7 +1205,7 @@ end
 
 local function process_next(run)
     if K.city_bridge_fault then run.bridge_failed=true;return nil end
-    if C.run~=run or not C.state.enabled or run.actions>=48 or not available(run.synchronous) then return nil end
+    if C.run~=run or not C.session.auto_enabled or run.actions>=48 or not available(run.synchronous) then return nil end
     if not bridge_healthy() then
         run.bridge_failed=true
         K.log("BRIDGE_GUARD abort: native campaign context unavailable; no more construction commands will be issued")
@@ -1415,7 +1434,7 @@ function C.run_now(synchronous,reason)
     synchronous=synchronous==true
     -- Both early exits below are silent no-ops otherwise, and a button that
     -- appears to do nothing is indistinguishable from a broken one. Say why.
-    if not C.state.enabled then
+    if not C.session.auto_enabled then
         C.ui_message=K.L("run_off")
         if C.ui_refresh then pcall(C.ui_refresh) end
         return
@@ -1568,7 +1587,13 @@ function C.request_run(reason)
         K.log("FORCE_REQUEST reason="..reason.." queued="..C.force_pending)
         if C.busy then return end
         C.force_pending=C.force_pending-1
-        C.run_now(false,reason)
+        -- Return from UI callback before touching PlayersFaction/CCO context.
+        local epoch=C.session.epoch
+        K.defer(function()
+            if C.session.epoch~=epoch or not C.session.auto_enabled then return end
+            K.log("FORCE_DISPATCH deferred reason="..tostring(reason))
+            C.run_now(false,reason)
+        end,0.25,"tk_auto_force_dispatch")
         return
     end
     C.pending=true
