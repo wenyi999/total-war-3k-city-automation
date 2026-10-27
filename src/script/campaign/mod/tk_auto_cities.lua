@@ -1162,8 +1162,23 @@ local function available(synchronous)
     return not cm:is_multiplayer() and not cm:is_processing_battle()
 end
 
+-- Never interpret a broken native context bridge as an empty settlement.
+-- Some UI callbacks can return a valid local turn but an invalid CCO context.
+local function bridge_healthy()
+    if not effect or type(effect.get_context_value)~="function" then return false end
+    local ok,treasury=pcall(function() return effect.get_context_value("PlayersFaction.TreasuryAmount") end)
+    if not ok or tonumber(treasury)==nil then return false end
+    local good,count=pcall(function() return effect.get_context_value("PlayersFaction.SettlementList.Size") end)
+    return good and tonumber(count)~=nil and tonumber(count)>0
+end
+
 local function process_next(run)
     if C.run~=run or not C.state.enabled or run.actions>=48 or not available(run.synchronous) then return nil end
+    if not bridge_healthy() then
+        run.bridge_failed=true
+        K.log("BRIDGE_GUARD abort: native campaign context unavailable; no more construction commands will be issued")
+        return nil
+    end
     local descriptor=run.cities[run.index]
     if not descriptor then return nil end
     local region=descriptor.region
@@ -1368,7 +1383,7 @@ step=function()
     local run=C.run
     if not run then return end
     local submitted=process_next(run)
-    if submitted==nil then finish();return end
+    if submitted==nil then finish(run.bridge_failed == true);return end
     if not submitted then schedule(run,step,0.04,"tk_auto_city_step");return end
     schedule(run,function()
         local slot=submitted.city.expression..".RegionSlotList.At("..submitted.plan.slot..")"
@@ -1494,6 +1509,12 @@ function C.run_now(synchronous,reason)
     local run={cities=cities,snapshots={},index=1,actions=0,confirmed=0,start_cash=math.min(treasury(),carry_cash or treasury()),start_food=food_total(),spent=0,
         reserved_food=0,synchronous=synchronous,reason=reason or "settings",reasons={},acted={}}
     C.run=run;C.busy=true
+    if not bridge_healthy() then
+        K.log("BRIDGE_GUARD abort_before_scan: native campaign context unavailable")
+        C.pending=true
+        finish(true)
+        return
+    end
     if not manual then C.state.auto_last_processed_turn=cm:query_model():turn_number() end
     K.log("Cities started: reason="..tostring(run.reason).." candidates="..#cities)
     local settlements=K.number("PlayersFaction.SettlementList.Size")
@@ -1512,7 +1533,10 @@ function C.run_now(synchronous,reason)
     local i=0
     local ledger_step
     ledger_step=function()
-        if not K.ready() then C.pending=true;finish();return end
+        if not K.ready() or not bridge_healthy() then
+            K.log("BRIDGE_GUARD abort_food_ledger: native campaign context unavailable")
+            C.pending=true;finish(true);return
+        end
         if i>=settlements then schedule(run,step,0.08,"tk_auto_city_step");return end
         run.reserved_food=run.reserved_food+reserve_one_settlement(i)
         i=i+1
