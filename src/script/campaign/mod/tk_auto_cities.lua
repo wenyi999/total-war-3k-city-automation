@@ -75,7 +75,7 @@ local GATE_DEFAULT={
     "3k_district_market_school_5",                    -- fallback school until actual mercenary DLC key is supplied
     "3k_district_residential_government_tools_5",    -- 簸谷机器作坊 / fan cart branch
     "3k_district_residential_landlords_5",           -- 豪右农庄 / landowners branch
-    "3k_dlc06_district_residential_logistics_5",     -- GUESS 国廪, NOT verified 大型邸阁
+    "3k_district_residential_logistics_5",           -- verified 大型谷仓 / 大型邸阁
     "3k_district_military_security_province_northern_horses_5", -- 白马义从团部
     "3k_district_military_conscription_3",           -- screenshot: 讲武营, 征募三级; catalog: 训练营
 }
@@ -120,6 +120,12 @@ local function ensure_gate_profile()
     -- Replace it only if the template still carries that exact placeholder.
     if p[1]=="3k_district_artisan_sun_jian_fealty_5" then
         p[1]="3k_district_market_school_5"
+    end
+    -- User verified the true logistics target; migrate the wrong Guolin key,
+    -- leaving all other individually edited gate slots untouched.
+    if p[4]=="3k_dlc06_district_residential_logistics_5" then
+        p[4]="3k_district_residential_logistics_5"
+        K.log("GATE_PRESET_MIGRATE logistics: Guolin -> Large Granary")
     end
     p.port=p.port or {};p._initialized=true
     C.state.profiles.gate=p
@@ -194,7 +200,8 @@ ensure_county_defaults()
 local function get_element(key)
     if type(key)~="string" then return nil end
     for _,element in ipairs(ELEMENTS) do
-        if key:find("_resource_"..element.."_",1,true) then return element end
+        if key:find("3k_resource_"..element.."_",1,true) or
+           key:find("_resource_"..element.."_",1,true) then return element end
     end
     return nil
 end
@@ -899,7 +906,9 @@ local function county_snapshot(region)
     local fixed_index={}
     for i=0,size-1 do
         local slot=p..".RegionSlotList.At("..i..")"
-        if K.bool(slot..".IsVisible") and not K.bool(slot..".IsPrimary") and not K.bool(slot..".IsEmpty") then
+        if K.bool(slot..".IsVisible") and not K.bool(slot..".IsEmpty") then
+            -- Resource buildings are often PRIMARY (slot 0). Scan those for
+            -- the five-element identity; exclude them from district planning.
             local record=slot..".BuildingContext.BuildingLevelRecordContext"
             local key=K.read(record..".Key")
             local data=key and TK_AUTO_BUILDINGS[key]
@@ -907,18 +916,20 @@ local function county_snapshot(region)
             local fixed=(data and data.fixed) or fixed_chains[chain] or K.bool(record..".IsResourceBuilding")
             if fixed then
                 fixed_index[i]=true
-                local element=get_element((data and data.superchain) or chain or key)
+                local element=get_element(key) or get_element(chain) or
+                    get_element(data and data.superchain)
                 if element then
                     if resource_element and resource_element~=element then
                         K.warn("county_mixed:"..region,"Multiple resource elements; skip county "..region)
                         return nil
                     end
                     resource_element=element
+                    K.log("COUNTY_ELEMENT region="..region.." slot="..i.." key="..tostring(key).." element="..element)
                 end
             end
         end
     end
-    if not resource_element then K.log("COUNTY_SKIP region="..region.." reason=no_resource_element");return nil end
+    if not resource_element then K.log("COUNTY_SKIP region="..region.." reason=no_resource_element fixed_scan="..tostring(size));return nil end
     local targets=county_settings()[resource_element]
     if not targets or not (TK_AUTO_BUILDINGS[targets[1]] or TK_AUTO_BUILDINGS[targets[2]]) then return nil end
     local goals={}
