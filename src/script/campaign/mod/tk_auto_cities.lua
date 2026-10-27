@@ -41,8 +41,8 @@ local RECOMMENDED_DEFAULT={
     "3k_district_market_tea_5", -- tea house
     "3k_district_market_trade_5", -- trade guild
     "3k_district_military_security_province_northern_horses_5", -- White Horse Garrison
-    "3k_district_government_administration_5", -- palace
     false, -- faction-specific structure / training camp: select in the UI
+    "3k_district_government_administration_5", -- palace: last priority; omitted in hybrid resource cities
 }
 local function ensure_recommended_profile()
     C.state.profiles=C.state.profiles or {}
@@ -133,6 +133,13 @@ end
 ensure_gate_profile()
 local function migrate_templates()
     for name,template in pairs(C.state.profiles) do
+        -- Preserve a player's existing ninth/tenth picks while moving the
+        -- palace to the lowest priority in the recommended set.
+        if name=="recommended" and template[9]=="3k_district_government_administration_5" and
+           template[10]~="3k_district_government_administration_5" then
+            template[9],template[10]=template[10],template[9]
+            K.log("HYBRID_TEMPLATE_MIGRATE moved palace to goal 10")
+        end
         local clean={}
         -- The fixed-building branch lives in the string field "port" and
         -- survives the migration; only the six district slots are checked
@@ -199,11 +206,17 @@ end
 ensure_county_defaults()
 local function get_element(key)
     if type(key)~="string" then return nil end
-    for _,element in ipairs(ELEMENTS) do
-        if key:find("3k_resource_"..element.."_",1,true) or
-           key:find("_resource_"..element.."_",1,true) then return element end
-    end
-    return nil
+    -- Economic-preset routing, NOT necessarily the game's Wu Xing colour.
+    -- Tea plantations and trade ports are commerce; lumber, farms and
+    -- livestock are agricultural. All other resources default to industry.
+    if not key:find("3k_resource_",1,true) and not key:find("_resource_",1,true) then return nil end
+    local lower=key:lower()
+    if lower:find("tea",1,true) or lower:find("trading_port",1,true) or
+       lower:find("silk",1,true) or lower:find("spice",1,true) or
+       lower:find("water_fish",1,true) or lower:find("wood_fish",1,true) then return "water" end
+    if lower:find("farms",1,true) or lower:find("lumber",1,true) or
+       lower:find("livestock",1,true) or lower:find("wood_bamboo",1,true) then return "wood" end
+    return "metal"
 end
 -- Persistent setting API for eventual UI. This does NOT issue any game action.
 function C.set_county_targets(element,first,second)
@@ -779,11 +792,37 @@ local function city_snapshot(region)
     local city={region=region,expression=p,owned=true,paused=config.paused,profile=config.profile,
         siege=K.bool(p..".IsUnderSiege"),slots={},capacity=0}
     local goals={}
-    for i=1,10 do
-        local goal=(C.state.profiles[config.profile] or {})[i]
-        if TK_AUTO_BUILDINGS[goal] then goals[#goals+1]=goal end
-    end
+    local source=C.state.profiles[config.profile] or {}
     local size=K.number(p..".RegionSlotList.Size")
+    local has_protected_resource=false
+    -- In a Ten Slot hybrid capital, a former resource plot may survive.
+    -- Such plots are protected and must not consume a standard district goal.
+    for i=0,size-1 do
+        local slot=p..".RegionSlotList.At("..i..")"
+        if K.bool(slot..".IsVisible") and not K.bool(slot..".IsEmpty") then
+            local record=slot..".BuildingContext.BuildingLevelRecordContext"
+            local key=K.read(record..".Key")
+            local chain=K.read(record..".BuildingChainRecordContext.Key")
+            local d=key and TK_AUTO_BUILDINGS[key]
+            if (d and d.fixed) or (chain and fixed_chains[chain]) or
+               K.bool(record..".IsResourceBuilding") or
+               (type(key)=="string" and key:find("3k_resource_",1,true)==1) then
+                has_protected_resource=true
+                K.log("HYBRID_FIXED region="..region.." slot="..i.." key="..tostring(key))
+            end
+        end
+    end
+    local palace="3k_district_government_administration_5"
+    for i=1,10 do
+        local goal=source[i]
+        if TK_AUTO_BUILDINGS[goal] and not (has_protected_resource and config.profile=="recommended" and goal==palace) then
+            goals[#goals+1]=goal
+        end
+    end
+    if has_protected_resource and config.profile=="recommended" then
+        K.log("HYBRID_GOALS region="..region.." resource_protected=true palace_excluded=true goals="..#goals)
+    end
+    city.effective_goals=goals
     for i=0,size-1 do
         local slot=p..".RegionSlotList.At("..i..")"
         if K.bool(slot..".IsPrimary") then
@@ -796,11 +835,11 @@ local function city_snapshot(region)
             -- Include unknown foreign districts too; fixed ports/resources stay
             -- outside templates and cannot be demolished by the district planner.
             local empty=K.bool(slot..".IsEmpty")
-            local fixed=data and data.fixed
-            if not empty and not data then
-                local record=slot..".BuildingContext.BuildingLevelRecordContext"
-                fixed=fixed_chains[K.read(record..".BuildingChainRecordContext.Key")] or K.bool(record..".IsResourceBuilding")
-            end
+            local record=slot..".BuildingContext.BuildingLevelRecordContext"
+            local chain=not empty and K.read(record..".BuildingChainRecordContext.Key") or nil
+            local fixed=not empty and ((data and data.fixed) or
+                (chain and fixed_chains[chain]) or K.bool(record..".IsResourceBuilding") or
+                (type(existing)=="string" and existing:find("3k_resource_",1,true)==1))
             if not fixed and (empty or not data or data.template_slot) then
                 local item=read_slot(p,i,goals)
                 if not item.fixed_only then city.slots[#city.slots+1]=item end
@@ -1231,7 +1270,7 @@ local function process_next(run)
     elseif county then
         plan,reason=K.next_city_action(city,county_settings()[city.element] or {},TK_AUTO_BUILDINGS,
             cash,food,false,C.state.build_focus,C.state.build_sort)
-    else plan,reason=K.next_city_action(city,C.state.profiles[config.profile] or {},TK_AUTO_BUILDINGS,cash,food,C.state.auto_growth,C.state.build_focus,C.state.build_sort) end
+    else plan,reason=K.next_city_action(city,city.effective_goals or C.state.profiles[config.profile] or {},TK_AUTO_BUILDINGS,cash,food,C.state.auto_growth,C.state.build_focus,C.state.build_sort) end
     C.status[region]=reason or (plan and plan.kind) or "waiting"
     run.reasons[region]=C.status[region]
     if not plan then
