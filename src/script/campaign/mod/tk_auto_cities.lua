@@ -299,11 +299,54 @@ local function region_config(region)
     local config=C.state.cities[region]
     if config then return config end
     if C.state.global_capitals then
-        return {profile="agriculture",paused=false}
+        return {profile=C.state.global_default_profile or "agriculture",paused=false}
     end
     return nil
 end
 C.region_config=region_config
+-- One-click setup: use the recommended profile for every owned capital,
+-- preserve the separate gate profile, and enable five-element county defaults.
+-- Explicitly assigned city profiles are updated too, avoiding repeated cycling.
+function C.apply_recommended_everywhere()
+    ensure_recommended_profile()
+    ensure_county_defaults()
+    C.state.global_default_profile="recommended"
+    C.state.global_capitals=true
+    C.state.auto_counties=true
+    C.state.auto_gate=true
+    C.state.cities=C.state.cities or {}
+    local changed=0
+    for _,config in pairs(C.state.cities) do
+        if type(config)=="table" then
+            config.profile="recommended"
+            config.paused=false
+            changed=changed+1
+        end
+    end
+    K.log("Recommended global default applied; existing city overrides updated="..changed)
+    return changed
+end
+-- Read-only ID inspector for currently selected region. Lists actual built
+-- building level keys (including DLC), not predictions from the static catalog.
+function C.inspect_region_buildings(region)
+    if not region or not K.owns_region(region) then return false,"not_an_owned_region" end
+    local p=K.settlement(region)
+    local n=K.number(p..".RegionSlotList.Size")
+    local found={}
+    for i=0,n-1 do
+        local slot=p..".RegionSlotList.At("..i..")"
+        if not K.bool(slot..".IsEmpty") then
+            local key=K.read(slot..".BuildingContext.BuildingLevelRecordContext.Key")
+            if key and key~="" then
+                local d=TK_AUTO_BUILDINGS[key]
+                local item=tostring(i)..": "..tostring(key).." | "..tostring(d and d.name or "not in static catalog")
+                found[#found+1]=item
+                K.log("INSPECT "..tostring(region).." "..item)
+            end
+        end
+    end
+    return true,found
+end
 
 -- Bandit-only buildings are useless (and actively harmful) to every other
 -- culture, so they are demolished rather than repaired. A bandit lord keeps

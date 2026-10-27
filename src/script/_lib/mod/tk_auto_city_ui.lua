@@ -703,6 +703,21 @@ local function render_panel()
             C().enable_counties(not state.auto_counties);U.refresh();C().request_run()
         end)
     end
+    if U.mode~="county" then
+    button(panel,"tk_auto_global_recommended","一键全图推荐",x+410,y+185,154,28,function()
+        local count=C().apply_recommended_everywhere()
+        U.message="全图推荐已设置：主城推荐/资源县五行/关隘独立；更新 "..tostring(count).." 项"
+        U.profile="recommended";U.refresh();C().request_run("global_recommended")
+    end)
+    end
+    button(panel,"tk_auto_inspect","查建筑ID",x+742,y+185,108,28,function()
+        local region=U.selected_region or U.inline_region
+        if not region then U.message="请先选中己方地区";U.refresh();return end
+        local ok,items=C().inspect_region_buildings(region)
+        if not ok then U.message="读取失败: "..tostring(items)
+        else U.message="ID已写入脚本日志，共"..#items.."项。"..(items[1] or "") end
+        U.refresh()
+    end)
     button(panel,"tk_auto_capture_sample","以选中地区作样板",x+570,y+185,164,28,function()
         local region=U.selected_region or U.inline_region
         if not region then U.message="请先在地图选中己方地区";U.refresh();return end
@@ -739,7 +754,7 @@ local function render_panel()
     local count=U.mode=="county" and 2 or (U.mode=="gate" and (U.goal_page==2 and 1 or 5) or 5)
     local start_index=U.mode=="county" and 1 or (U.goal_page==2 and 6 or 1)
     -- Reserve column zero only in capital mode; gate has six district goals.
-    local cw=(width-48)/(count+(U.mode=="capital" and 1 or 0))
+    local cw=(width-48)/(U.mode=="gate" and 5 or (count+(U.mode=="capital" and 1 or 0)))
     if U.mode=="capital" then
         local ports=TK_AUTO_TEMPLATE_STORE.port_of(tpl)
         local chosen={}
