@@ -1385,9 +1385,16 @@ function C.run_now(synchronous,reason)
                             income=K.number(province..".Income"),
                             food=K.number('PlayersFaction.PooledResourceContext("'..FOOD..'").ProvinceBreakdownContext('..province..').Total')}
                     end
-                    cities[#cities+1]={region=region,kind="fixed",profile=config and config.profile or "other",
-                        income=K.number(province..".Income"),
-                        food=K.number('PlayersFaction.PooledResourceContext("'..FOOD..'").ProvinceBreakdownContext('..province..').Total')}
+                    -- Capitals are already handled by the city planner. The
+                    -- fixed planner has been deliberately disabled for capital
+                    -- settlements in this experimental hybrid build; queuing
+                    -- one anyway caused redundant snapshots and misleading
+                    -- kind=fixed diagnostics for ordinary cities.
+                    if not K.bool(p..".IsProvinceCapital") then
+                        cities[#cities+1]={region=region,kind="fixed",profile=config and config.profile or "other",
+                            income=K.number(province..".Income"),
+                            food=K.number('PlayersFaction.PooledResourceContext("'..FOOD..'").ProvinceBreakdownContext('..province..').Total')}
+                    end
                 end
             end
         end
