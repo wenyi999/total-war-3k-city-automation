@@ -1,8 +1,8 @@
 TK_AUTO = TK_AUTO or {}
 local K=TK_AUTO
-local U={generation=0,page=1,picker_page=1,profile="agriculture",actions={},action_ids={},click_locks={},panel=nil,regions={},picker=nil}
+local U={generation=0,page=1,picker_page=1,profile="recommended",actions={},action_ids={},click_locks={},panel=nil,regions={},picker=nil}
 TK_AUTO_CITY_UI=U
-local profiles={"agriculture","commerce","industry","other"}
+local profiles={"agriculture","commerce","industry","other","recommended"}
 local function C() return TK_AUTO_CITIES end
 local element_names={metal="金",wood="木",water="水",fire="火",earth="土"}
 local element_order={"metal","wood","water","fire","earth"}
@@ -26,7 +26,6 @@ local function record(key)
     return "PlayersFaction.CapitalSettlementContext.PrimaryRegionSlotContext.BuildingContext.BuildingLevelRecordContext.RecordList.FirstContext(Key == "..K.quote(key)..")"
 end
 local title_cache={}
-local choices_cache=nil
 local effects_cache={}
 local faction_permissions,matching_variant
 local permissions_cache
@@ -190,7 +189,7 @@ local function change_profile(region,source)
     local config=state.cities[region]
     if not config then state.cities[region]={profile="agriculture",paused=false}
     else
-        local next=cycle(config.profile,{"agriculture","commerce","industry","other","off"})
+        local next=cycle(config.profile,{"agriculture","commerce","industry","other","recommended","off"})
         if next=="off" then state.cities[region]=nil else config.profile=next end
     end
     U.refresh()
@@ -239,7 +238,6 @@ function U.invalidate_panel()
     U.action_ids={}
     U.click_locks={}
     U.regions={}
-    choices_cache=nil
     title_cache={}
     effects_cache={}
 end
@@ -321,11 +319,29 @@ local function port_items()
     return result
 end
 
+-- Only hide duplicates inside the template currently being edited.
+-- A building may still appear in another city / elemental template.
+local function goal_taken_by_other_slot(candidate,selected_index)
+    local data=TK_AUTO_BUILDINGS[candidate]
+    if not data then return false end
+    local template=current_template()
+    local count=U.mode=="county" and 2 or 10
+    for i=1,count do
+        if i~=selected_index then
+            local existing=TK_AUTO_BUILDINGS[template[i]]
+            if existing and existing.superchain==data.superchain then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 local function picker_items()
     local result={}
     local permission=faction_permissions()
     for _,key in ipairs(TK_AUTO_BUILDING_CHOICES) do
-        if can_choose(key,permission) then result[#result+1]=key end
+        if can_choose(key,permission) and not goal_taken_by_other_slot(key,U.picker) then result[#result+1]=key end
     end
     return result
 end
@@ -334,7 +350,9 @@ local function choose(key)
     local tpl=current_template()
     local index=U.picker
     local data=TK_AUTO_BUILDINGS[key]
-    if not data or not U.can_choose(key) then U.message=K.L("cannot_use");U.refresh();return end
+    if not data or not U.can_choose(key) or goal_taken_by_other_slot(key,index) then
+        U.message="该建筑系列已用于本模板的另一个位置";U.refresh();return
+    end
     for i=1,(U.mode=="county" and 2 or 10) do
         local old=TK_AUTO_BUILDINGS[tpl[i]]
         if i~=index and old and old.superchain==data.superchain then
@@ -474,9 +492,11 @@ end
 
 local function render_picker(panel,x,y,width,height,px,py)
     if U.picker==0 then render_port_picker(panel,x,y,width,height,px,py);return end
-    if not choices_cache then choices_cache=picker_items() end
+    -- Rebuild the available choices for each open picker: cached choices are global,
+    -- but uniqueness depends on the active template and slot.
+    local available_choices=picker_items()
     local groups={}
-    for _,key in ipairs(choices_cache) do
+    for _,key in ipairs(available_choices) do
         local data=TK_AUTO_BUILDINGS[key]
         local category=data.category or "other"
         groups[category]=groups[category] or {}
@@ -602,7 +622,7 @@ local function render_panel()
         TK_AUTO_LOCALE.next_language()
         -- A completed pass contains already formatted text in the old language.
         C().ui_message=nil;C().ui_reasons=nil;U.message=nil
-        title_cache={};effects_cache={};choices_cache=nil
+        title_cache={};effects_cache={}
         U.refresh();U.attach_controls()
         if K.restore_toolbar then K.restore_toolbar() end
     end)
@@ -663,8 +683,8 @@ local function render_panel()
         button(panel,"tk_auto_global_cap",state.global_capitals and "全主城自动: 开" or "全主城自动: 关",x+327,y+151,155,30,function()
             state.global_capitals=not state.global_capitals;U.refresh();C().request_run()
         end)
-        button(panel,"tk_auto_cap_profile", "全局模板: 农业",x+488,y+151,177,30,function()
-            U.profile="agriculture";U.picker=nil;U.refresh()
+        button(panel,"tk_auto_cap_profile", "当前模板: "..K.L("profile_"..U.profile),x+488,y+151,177,30,function()
+            U.profile=cycle(U.profile,profiles);U.picker=nil;U.refresh()
         end)
     else
         for i,e in ipairs(element_order) do
@@ -787,7 +807,7 @@ function U.open()
         U.close();U.panel=nil
         return
     end
-    choices_cache=nil;title_cache={};effects_cache={}
+    title_cache={};effects_cache={}
     local generation=U.generation
     K.defer(function()
         if generation~=U.generation or not panel_visible() then return end

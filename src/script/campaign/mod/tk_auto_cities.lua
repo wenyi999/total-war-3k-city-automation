@@ -3,7 +3,7 @@ local C = {version="0.1.49",state={version=1,enabled=true,
     -- Two separate orderings: the building pair ranks the entries of one city's
     -- template, the city key ranks cities against each other.
     build_sort="income_high",build_focus="all",city_sort="small",reserve_money=0,
-    reserve_food=0,auto_growth=true,auto_gate=true,profiles={agriculture={},commerce={},industry={},other={}},cities={},reservations={}},
+    reserve_food=0,auto_growth=true,auto_gate=true,profiles={agriculture={},commerce={},industry={},other={},recommended={}},cities={},reservations={}},
     busy=false,submitted={},demolish_order={},status={},run=nil,requests=0}
 TK_AUTO_CITIES=C
 local SAVE="tk_auto_cities_v1"
@@ -28,6 +28,34 @@ for _,data in pairs(TK_AUTO_BUILDINGS) do
 end
 local food_effects='EffectKey == "3k_main_effect_province_food_consumption_distribution" || EffectKey == "3k_main_effect_province_food_abs_sold_markets" || EffectKey == "3k_main_effect_province_food_abs_farming" || EffectKey == "3k_main_effect_province_food_abs_fishing" || EffectKey == "3k_main_effect_province_food_abs_foraging" || EffectKey == "3k_dlc05_effect_province_food_abs_banditry"'
 
+-- The recommended preset is independent of agriculture/commerce/industry/other.
+-- IDs reflect the included 1.7.2 building catalogue. Users can edit these in
+-- the existing ten-target editor. A few requested Chinese names differ from
+-- the catalogue and should be verified in-game before enabling automation.
+local RECOMMENDED_DEFAULT={
+    "3k_district_artisan_mines_5", -- industrial mining workers (closest catalogue match)
+    "3k_district_artisan_workshop_state_5", -- state workshop
+    "3k_district_artisan_workshop_lacquer_5", -- lacquer workshop
+    "3k_district_residential_government_support_5", -- irrigation / windmill family
+    "3k_district_residential_landlords_5", -- landlords
+    "3k_district_market_tea_5", -- tea house
+    "3k_district_market_trade_5", -- trade guild
+    "3k_district_military_security_province_northern_horses_5", -- White Horse Garrison
+    "3k_district_government_administration_5", -- palace
+    false, -- faction-specific structure / training camp: select in the UI
+}
+local function ensure_recommended_profile()
+    C.state.profiles=C.state.profiles or {}
+    if C.state.profiles.recommended then return end
+    local profile={port={}}
+    for i=1,10 do
+        local key=RECOMMENDED_DEFAULT[i]
+        local data=key and TK_AUTO_BUILDINGS[key]
+        profile[i]=(data and data.template_slot) and key or false
+    end
+    C.state.profiles.recommended=profile
+end
+ensure_recommended_profile()
 local function migrate_templates()
     for name,template in pairs(C.state.profiles) do
         local clean={}
@@ -210,6 +238,7 @@ cm:add_saving_game_callback(function(context) cm:save_named_value(SAVE,C.state,c
 cm:add_loading_game_callback(function(context)
     local saved=cm:load_named_value(SAVE,C.state,context)
     if type(saved)=="table" and saved.version==1 then C.state=saved end
+    ensure_recommended_profile()
     C.state.reservations=C.state.reservations or {}
     county_settings()
     if C.state.auto_counties==nil then C.state.auto_counties=false end
