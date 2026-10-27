@@ -8,8 +8,8 @@
 -- so the field is a map: port[superchain] = chosen end point.
 TK_AUTO_TEMPLATE_STORE = {path="tk_auto_city_templates_v1.txt"}
 local T=TK_AUTO_TEMPLATE_STORE
-local names={"agriculture","commerce","industry","other"}
-local known={agriculture=true,commerce=true,industry=true,other=true}
+local names={"agriculture","commerce","industry","other","recommended"}
+local known={agriculture=true,commerce=true,industry=true,other=true,recommended=true}
 
 local function port_info(key)
     if type(key)~="string" then return nil end
@@ -74,6 +74,12 @@ function T.normalize(profiles,allowed)
             end
         end
         result[name]=target
+    end
+    -- Gate is a separate six-goal template: preserve it when normalizing
+    -- capital profiles. It is NOT an ordinary capital export profile.
+    local gate=type(profiles)=="table" and profiles.gate or nil
+    if type(gate)=="table" then
+        result.gate=gate
     end
     return result,removed
 end
@@ -144,7 +150,7 @@ function T.deserialize(value)
     end
     for _,name in ipairs(names) do
         for i=1,(header=="4" and 10 or 6) do
-            if counts[name][i]~=1 then return nil,K.L("err_file_format") end
+            if counts[name][i]~=1 and not (name=="recommended" and counts[name][i]==nil) then return nil,K.L("err_file_format") end
         end
         if (counts[name][0] or 0)>2 then return nil,K.L("err_file_format") end
     end

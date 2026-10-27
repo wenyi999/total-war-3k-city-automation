@@ -3,7 +3,7 @@ local C = {version="0.1.49",state={version=1,enabled=true,
     -- Two separate orderings: the building pair ranks the entries of one city's
     -- template, the city key ranks cities against each other.
     build_sort="income_high",build_focus="all",city_sort="small",reserve_money=0,
-    reserve_food=0,auto_growth=true,auto_gate=true,profiles={agriculture={},commerce={},industry={},other={}},cities={},reservations={}},
+    reserve_food=0,auto_growth=true,auto_gate=true,profiles={agriculture={},commerce={},industry={},other={},recommended={},gate={}},cities={},reservations={}},
     busy=false,submitted={},demolish_order={},status={},run=nil,requests=0}
 TK_AUTO_CITIES=C
 local SAVE="tk_auto_cities_v1"
@@ -28,6 +28,103 @@ for _,data in pairs(TK_AUTO_BUILDINGS) do
 end
 local food_effects='EffectKey == "3k_main_effect_province_food_consumption_distribution" || EffectKey == "3k_main_effect_province_food_abs_sold_markets" || EffectKey == "3k_main_effect_province_food_abs_farming" || EffectKey == "3k_main_effect_province_food_abs_fishing" || EffectKey == "3k_main_effect_province_food_abs_foraging" || EffectKey == "3k_dlc05_effect_province_food_abs_banditry"'
 
+-- The recommended preset is independent of agriculture/commerce/industry/other.
+-- IDs reflect the included 1.7.2 building catalogue. Users can edit these in
+-- the existing ten-target editor. A few requested Chinese names differ from
+-- the catalogue and should be verified in-game before enabling automation.
+local RECOMMENDED_DEFAULT={
+    "3k_district_artisan_mines_5", -- industrial mining workers (closest catalogue match)
+    "3k_district_artisan_workshop_state_5", -- state workshop
+    "3k_district_artisan_workshop_lacquer_5", -- lacquer workshop
+    "3k_district_residential_government_tools_5", -- fan cart / agricultural tools line; modern catalog: 簸谷机器作坊
+    "3k_district_residential_landlords_5", -- landlords
+    "3k_district_market_tea_5", -- tea house
+    "3k_district_market_trade_5", -- trade guild
+    "3k_district_military_security_province_northern_horses_5", -- White Horse Garrison
+    "3k_district_government_administration_5", -- palace
+    false, -- faction-specific structure / training camp: select in the UI
+}
+local function ensure_recommended_profile()
+    C.state.profiles=C.state.profiles or {}
+    if C.state.profiles.recommended and next(C.state.profiles.recommended) then return end
+    local profile={port={}}
+    for i=1,10 do
+        local key=RECOMMENDED_DEFAULT[i]
+        local data=key and TK_AUTO_BUILDINGS[key]
+        profile[i]=(data and data.template_slot) and key or false
+    end
+    C.state.profiles.recommended=profile
+end
+ensure_recommended_profile()
+
+-- Gate: its own six-goal district profile, independent of capital templates.
+-- Unverified named branches are deliberately left editable rather than guessed.
+local GATE_DEFAULT_NAMES={
+    "派系特色建筑（无特色时：大型郡国学）", "扇车工坊", "豪强田产", "大型邸阁",
+    "白马义从团部", "讲武营（征募三级）"
+}
+-- Name resolution uses BUILDING CHAIN, not an unverified exact Chinese label.
+-- Original game labels differ from the bundled 1.7.2 catalog.
+-- Candidate preview for in-game label verification ONLY:
+-- slot 1 uses 孙坚江东兵府 as an UNVERIFIED stand-in for 孙策佣兵大帐;
+-- slot 4 uses 南蛮国廪 as an UNVERIFIED stand-in for 大型邸阁.
+-- The game may deny construction for faction or culture restrictions.
+-- Other four goals are catalog matches; the conscription level 3 is
+-- named 训练营 in catalog but shown 讲武营 in supplied screenshot.
+local GATE_DEFAULT={
+    "3k_district_market_school_5",                    -- fallback school until actual mercenary DLC key is supplied
+    "3k_district_residential_government_tools_5",    -- 簸谷机器作坊 / fan cart branch
+    "3k_district_residential_landlords_5",           -- 豪右农庄 / landowners branch
+    "3k_dlc06_district_residential_logistics_5",     -- GUESS 国廪, NOT verified 大型邸阁
+    "3k_district_military_security_province_northern_horses_5", -- 白马义从团部
+    "3k_district_military_conscription_3",           -- screenshot: 讲武营, 征募三级; catalog: 训练营
+}
+local function ensure_gate_profile()
+    C.state.profiles=C.state.profiles or {}
+    local p=C.state.profiles.gate
+    if type(p)~="table" then p={} end
+    -- Upgrade only the original almost-empty Gate Beta preset. Never overwrite
+    -- an edited profile (including deliberately cleared goals).
+    local old_fifth="3k_district_military_security_province_5"
+    local previous=not p._verified_defaults_v1 and
+      (p[1]==nil or p[1]==false) and (p[2]==nil or p[2]==false) and
+      (p[3]==nil or p[3]==false) and (p[4]==nil or p[4]==false) and
+      (p[5]==nil or p[5]==false or p[5]==old_fifth) and
+      (p[6]==nil or p[6]==false)
+    -- Preview preset migration: replace ONLY unchanged original screenshot-beta
+    -- defaults or the prior blank gate profile. Never overwrite edited goals.
+    local prior_v1={
+        "3k_district_market_school_5",
+        "3k_district_residential_government_tools_5",
+        "3k_district_residential_landlords_5",
+        "3k_district_residential_logistics_5",
+        "3k_district_military_security_province_northern_horses_5",
+        "3k_district_military_conscription_3",
+    }
+    local prior_unchanged = p._verified_defaults_v1 and not p._candidate_preview_v2
+    if prior_unchanged then
+        for i=1,6 do
+            if p[i]~=prior_v1[i] then prior_unchanged=false;break end
+        end
+    end
+    if previous or prior_unchanged then
+        for i=1,6 do
+            local k=GATE_DEFAULT[i]
+            p[i]=(TK_AUTO_BUILDINGS[k] and TK_AUTO_BUILDINGS[k].template_slot) and k or false
+        end
+        p._verified_defaults_v1=true
+        p._candidate_preview_v2=true
+    end
+    -- Old candidate preview can refer to a foreign faction building which
+    -- fails the player's permissions and appears blank in the picker.
+    -- Replace it only if the template still carries that exact placeholder.
+    if p[1]=="3k_district_artisan_sun_jian_fealty_5" then
+        p[1]="3k_district_market_school_5"
+    end
+    p.port=p.port or {};p._initialized=true
+    C.state.profiles.gate=p
+end
+ensure_gate_profile()
 local function migrate_templates()
     for name,template in pairs(C.state.profiles) do
         local clean={}
@@ -58,6 +155,7 @@ local function migrate_templates()
                 if key then K.log("Removed fixed/missing building from "..name.." template position "..i..": "..tostring(key)) end
             end
         end
+        if name=="gate" then clean._initialized=true; clean._verified_defaults_v1=template._verified_defaults_v1; clean._candidate_preview_v2=template._candidate_preview_v2 end
         C.state.profiles[name]=clean
     end
 end
@@ -70,6 +168,29 @@ local function county_settings()
     if type(C.state.county_templates)~="table" then C.state.county_templates={} end
     return C.state.county_templates
 end
+-- Default resource-county templates. Only seed a category when it was never
+-- configured. An intentionally cleared or edited category stays untouched.
+local COUNTY_DEFAULTS={
+    metal={"3k_district_artisan_workshop_state_5","3k_district_artisan_workshop_lacquer_5"},
+    fire={"3k_district_artisan_workshop_state_5","3k_district_artisan_workshop_lacquer_5"},
+    earth={"3k_district_artisan_workshop_state_5","3k_district_artisan_workshop_lacquer_5"},
+    wood={"3k_district_residential_government_tools_5","3k_district_residential_landlords_5"},
+    water={"3k_district_market_tea_5","3k_district_market_trade_5"},
+}
+local function ensure_county_defaults()
+    local t=county_settings()
+    for element,pair in pairs(COUNTY_DEFAULTS) do
+        if type(t[element])~="table" then
+            t[element]={}
+            for i=1,2 do
+                local key=pair[i]
+                local data=TK_AUTO_BUILDINGS[key]
+                t[element][i]=(data and data.template_slot) and key or false
+            end
+        end
+    end
+end
+ensure_county_defaults()
 local function get_element(key)
     if type(key)~="string" then return nil end
     for _,element in ipairs(ELEMENTS) do
@@ -178,11 +299,57 @@ local function region_config(region)
     local config=C.state.cities[region]
     if config then return config end
     if C.state.global_capitals then
-        return {profile="agriculture",paused=false}
+        return {profile=C.state.global_default_profile or "agriculture",paused=false}
     end
     return nil
 end
 C.region_config=region_config
+-- One-click setup: use the recommended profile for every owned capital,
+-- preserve the separate gate profile, and enable five-element county defaults.
+-- Explicitly assigned city profiles are updated too, avoiding repeated cycling.
+function C.apply_recommended_everywhere()
+    ensure_recommended_profile()
+    ensure_county_defaults()
+    C.state.global_default_profile="recommended"
+    C.state.global_capitals=true
+    C.state.auto_counties=true
+    C.state.auto_gate=true
+    C.state.cities=C.state.cities or {}
+    local changed=0
+    for _,config in pairs(C.state.cities) do
+        if type(config)=="table" then
+            config.profile="recommended"
+            config.paused=false
+            changed=changed+1
+        end
+    end
+    K.log("Recommended global default applied; existing city overrides updated="..changed)
+    return changed
+end
+-- Read-only ID inspector for currently selected region. Lists actual built
+-- building level keys (including DLC), not predictions from the static catalog.
+function C.inspect_region_buildings(region)
+    if not region or not K.owns_region(region) then return false,"not_an_owned_region" end
+    local p=K.settlement(region)
+    local n=K.number(p..".RegionSlotList.Size")
+    local found={}
+    K.log("INSPECT_BEGIN region="..tostring(region).." total_slots="..tostring(n))
+    for i=0,n-1 do
+        local slot=p..".RegionSlotList.At("..i..")"
+        if not K.bool(slot..".IsEmpty") then
+            local key=K.read(slot..".BuildingContext.BuildingLevelRecordContext.Key")
+            if key and key~="" then
+                local d=TK_AUTO_BUILDINGS[key]
+                local item=tostring(i)..": "..tostring(key).." | "..tostring(d and d.name or "not in static catalog")
+                found[#found+1]=item
+                K.log("INSPECT "..tostring(region).." "..item)
+            end
+        end
+    end
+    if C.diagnose_county_slots then C.diagnose_county_slots(region,"inspector") end
+    K.log("INSPECT_END region="..tostring(region).." built="..#found)
+    return true,found
+end
 
 -- Bandit-only buildings are useless (and actively harmful) to every other
 -- culture, so they are demolished rather than repaired. A bandit lord keeps
@@ -210,8 +377,10 @@ cm:add_saving_game_callback(function(context) cm:save_named_value(SAVE,C.state,c
 cm:add_loading_game_callback(function(context)
     local saved=cm:load_named_value(SAVE,C.state,context)
     if type(saved)=="table" and saved.version==1 then C.state=saved end
+    ensure_recommended_profile()
+    ensure_gate_profile()
     C.state.reservations=C.state.reservations or {}
-    county_settings()
+    ensure_county_defaults()
     if C.state.auto_counties==nil then C.state.auto_counties=false end
     C.demolish_order=C.demolish_order or {}
     if C.state.auto_gate==nil then C.state.auto_gate=true end
@@ -684,6 +853,40 @@ end
 
 -- The county planner owns ONLY ordinary, non-primary slots. The original
 -- fixed_snapshot still upgrades its resource building separately.
+local function diagnose_county_slots(region, source)
+    local p=K.settlement(region)
+    local n=K.number(p..".RegionSlotList.Size")
+    K.log("COUNTY_DIAG_BEGIN region="..tostring(region).." source="..tostring(source)..
+        " is_capital="..tostring(K.bool(p..".IsProvinceCapital")).." slots="..tostring(n))
+    for i=0,math.min(n-1,19) do
+        local slot=p..".RegionSlotList.At("..i..")"
+        local visible=K.bool(slot..".IsVisible")
+        local primary=K.bool(slot..".IsPrimary")
+        local empty=K.bool(slot..".IsEmpty")
+        local rec=slot..".BuildingContext.BuildingLevelRecordContext"
+        local key=not empty and K.read(rec..".Key") or nil
+        local d=key and TK_AUTO_BUILDINGS[key] or nil
+        local chain=not empty and K.read(rec..".BuildingChainRecordContext.Key") or nil
+        local fixed=not empty and ((d and d.fixed) or fixed_chains[chain] or K.bool(rec..".IsResourceBuilding")) or false
+        local part={"slot="..i,"visible="..tostring(visible),"primary="..tostring(primary),
+            "empty="..tostring(empty),"fixed="..tostring(fixed),
+            "key="..tostring(key),"chain="..tostring(chain)}
+        if visible and not primary and not fixed then
+            local ok,info=pcall(read_slot,p,i,{})
+            if ok and type(info)=="table" then
+                part[#part+1]="bridge_missing="..tostring(info.bridge_missing)
+                part[#part+1]="fixed_only="..tostring(info.fixed_only)
+                part[#part+1]="roots="..tostring(#(info.roots or {}))
+                part[#part+1]="upgrades="..tostring(#(info.upgrades or {}))
+                if info.native_counts then part[#part+1]="native_chains="..tostring(info.native_counts.chains) end
+            else part[#part+1]="probe_error="..tostring(info) end
+        end
+        K.log("COUNTY_DIAG "..tostring(region).." "..table.concat(part," "))
+    end
+    K.log("COUNTY_DIAG_END region="..tostring(region))
+end
+
+C.diagnose_county_slots=diagnose_county_slots
 local function county_snapshot(region)
     local p=K.settlement(region)
     if not K.owns_region(region) or K.bool(p..".IsProvinceCapital") then return nil end
@@ -715,7 +918,7 @@ local function county_snapshot(region)
             end
         end
     end
-    if not resource_element then return nil end
+    if not resource_element then K.log("COUNTY_SKIP region="..region.." reason=no_resource_element");return nil end
     local targets=county_settings()[resource_element]
     if not targets or not (TK_AUTO_BUILDINGS[targets[1]] or TK_AUTO_BUILDINGS[targets[2]]) then return nil end
     local goals={}
@@ -741,7 +944,7 @@ local function county_snapshot(region)
             end
         end
     end
-    if #city.slots==0 then return nil end
+    if #city.slots==0 then K.log("COUNTY_SKIP region="..region.." reason=no_verified_ordinary_slots element="..tostring(resource_element));return nil end
     -- No hardcoded two-slot indexing: an ordinary six-slot game simply finds
     -- no county district plots and does nothing.
     -- Prefer plots holding an existing target-line building; otherwise take
@@ -778,6 +981,7 @@ local function county_snapshot(region)
     end
     city.capacity=#city.slots
     city.element=resource_element
+    K.log("COUNTY_READY region="..region.." element="..resource_element.." ordinary_slots="..#city.slots)
     return city
 end
 C.county_snapshot=county_snapshot
@@ -792,7 +996,7 @@ C.is_gate_pass=is_gate_pass
 
 local function gate_snapshot(region)
     if not TK_AUTO_GATES then return nil end
-    local ok,city=pcall(TK_AUTO_GATES.snapshot,region,read_slot)
+    local ok,city=pcall(TK_AUTO_GATES.snapshot,region,read_slot,C.state.profiles.gate or {})
     if ok then return city end
     K.warn("gate_snapshot:"..tostring(region),"Gate snapshot failed: "..tostring(city))
 end
@@ -887,7 +1091,10 @@ local function finish(suppress_rerun)
     if C.ui_refresh then pcall(C.ui_refresh) end
     local again=C.rerun
     C.rerun=false
-    if again and not suppress_rerun then C.request_run(C.pending_reason or "queued_event") end
+    if not suppress_rerun and (C.force_pending or 0)>0 then
+        C.force_pending=C.force_pending-1
+        K.defer(function() C.run_now(false,"global_recommended") end,0.1,"tk_auto_force_again")
+    elseif again and not suppress_rerun then C.request_run(C.pending_reason or "queued_event") end
 end
 
 local function schedule(run,fn,delay,name)
@@ -920,7 +1127,12 @@ local function process_next(run)
     if not city then
         if gate then city=gate_snapshot(region)
         elseif fixed then city=fixed_snapshot(region)
-        elseif county then city=county_snapshot(region)
+        elseif county then
+            if (C.diagnostic_count or 0)<12 then
+                C.diagnostic_count=(C.diagnostic_count or 0)+1
+                diagnose_county_slots(region,"run")
+            end
+            city=county_snapshot(region)
         else city=city_snapshot(region) end
         run.snapshots[snapshot_key]=city
     end
@@ -940,6 +1152,10 @@ local function process_next(run)
             slot.ordered_this_pass=true
             if type(ordered)=="table" and ordered.key then slot.key=ordered.key;slot.foreign=false end
         end
+    end
+    for _,slot in ipairs(city.district_slots or {}) do
+        local ordered=C.submitted[region..":"..slot.index]
+        if ordered then slot.busy=true;slot.ordered_this_pass=true end
     end
     if city.primary and C.submitted[region..":"..city.primary.index] then city.primary.busy=true end
     -- Slots whose demolition we already ordered, still holding the same building.
@@ -986,9 +1202,20 @@ local function process_next(run)
     run.available_cash,run.available_food=cash,food
     local plan,reason
     if gate then
-        local ok,result,why=pcall(TK_AUTO_GATES.next_action,city,TK_AUTO_BUILDINGS,cash,food)
-        if ok then plan,reason=result,why
-        else reason="gate_waiting";K.warn("gate_plan:"..region,"Gate planner failed: "..tostring(result)) end
+        local gate_goals=C.state.profiles.gate or {}
+        -- Ordinary district slots in gates share the city planner; the special
+        -- gate-only construction chain remains under the original gate planner.
+        if city.district_slots and #city.district_slots>0 and has_targets(gate_goals) then
+            local district={region=region,owned=true,paused=false,siege=city.siege,
+                slots=city.district_slots,capacity=math.min(#city.district_slots,6)}
+            plan,reason=K.next_city_action(district,gate_goals,TK_AUTO_BUILDINGS,
+                cash,food,false,C.state.build_focus,C.state.build_sort)
+        end
+        if not plan then
+            local ok,result,why=pcall(TK_AUTO_GATES.next_action,city,TK_AUTO_BUILDINGS,cash,food)
+            if ok then plan,reason=result,why
+            else reason="gate_waiting";K.warn("gate_plan:"..region,"Gate planner failed: "..tostring(result)) end
+        end
     elseif fixed then plan,reason=K.next_fixed_action(city,TK_AUTO_BUILDINGS,cash,food)
     elseif county then
         plan,reason=K.next_city_action(city,county_settings()[city.element] or {},TK_AUTO_BUILDINGS,
@@ -1122,6 +1349,15 @@ function C.run_now(synchronous,reason)
         K.log("Cities request deferred: reason="..tostring(reason).." awaiting local turn/battle completion")
         return
     end
+    -- Automatic campaign events can fire several times in the same player turn.
+    -- One automatic construction pass per turn; explicit manual requests are exempt.
+    -- Store the turn in saved state so reloading does not re-apply the template.
+    local current_turn=cm:query_model():turn_number()
+    local manual=(reason=="manual" or reason=="global_recommended" or reason=="city_acquired" or reason=="city_captured")
+    if not manual and C.state.auto_last_processed_turn==current_turn then
+        K.log("City automatic pass skipped: already processed turn "..tostring(current_turn).." ("..tostring(reason)..")")
+        return
+    end
     local carry_submitted={}
     local carry_food,carry_cash=0,nil
     if C.busy then
@@ -1193,10 +1429,22 @@ function C.run_now(synchronous,reason)
             end
         end
     end
+    -- Captures are scoped to newly-owned settlement(s), never a second global pass.
+    if reason=="city_acquired" or reason=="city_captured" then
+        local selected={}
+        local wanted=C.capture_pending_regions or {}
+        for _,entry in ipairs(cities) do if wanted[entry.region] then selected[#selected+1]=entry end end
+        K.log("CAPTURE_SCOPE requested="..tostring(C.capture_pending_count or 0).." tasks="..#selected)
+        cities=selected
+        C.capture_pending_regions={}
+        C.capture_pending_count=0
+    end
     K.sort_cities(cities,C.state.city_sort)
+    C.diagnostic_count=0
     local run={cities=cities,snapshots={},index=1,actions=0,confirmed=0,start_cash=math.min(treasury(),carry_cash or treasury()),start_food=food_total(),spent=0,
         reserved_food=0,synchronous=synchronous,reason=reason or "settings",reasons={},acted={}}
     C.run=run;C.busy=true
+    if not manual then C.state.auto_last_processed_turn=cm:query_model():turn_number() end
     K.log("Cities started: reason="..tostring(run.reason).." candidates="..#cities)
     local settlements=K.number("PlayersFaction.SettlementList.Size")
     if synchronous then
@@ -1224,8 +1472,18 @@ function C.run_now(synchronous,reason)
 end
 
 function C.request_run(reason)
+    reason=reason or "settings"
+    local forced=(reason=="manual" or reason=="global_recommended")
+    if forced then
+        C.force_pending=(C.force_pending or 0)+1
+        K.log("FORCE_REQUEST reason="..reason.." queued="..C.force_pending)
+        if C.busy then return end
+        C.force_pending=C.force_pending-1
+        C.run_now(false,reason)
+        return
+    end
     C.pending=true
-    C.pending_reason=reason or "settings"
+    C.pending_reason=reason
     C.requests=C.requests+1
     if C.busy then C.rerun=true;return end
     local request=C.requests
@@ -1294,12 +1552,36 @@ local function initialize()
     core:add_listener("tk_auto_cities_before_turn_end","FactionAboutToEndTurn",
         function(c) return c:faction():name()==cm:get_local_faction(true) end,
         function() C.end_turn() end,true)
+    -- Snapshot the owned regions at init; events compare before/after ownership.
+    C.known_owned_regions={}
+    for i=0,K.number("PlayersFaction.SettlementList.Size")-1 do
+        local key=K.read("PlayersFaction.SettlementList.At("..i..").RegionRecordKey")
+        if key then C.known_owned_regions[key]=true end
+    end
+    local function handle_new_regions(reason)
+        local new_count=0
+        C.capture_pending_regions=C.capture_pending_regions or {}
+        for i=0,K.number("PlayersFaction.SettlementList.Size")-1 do
+            local key=K.read("PlayersFaction.SettlementList.At("..i..").RegionRecordKey")
+            if key and not C.known_owned_regions[key] then
+                C.known_owned_regions[key]=true
+                if not C.capture_pending_regions[key] then
+                    C.capture_pending_regions[key]=true
+                    new_count=new_count+1
+                    K.log("CAPTURE_NEW region="..key.." reason="..reason)
+                end
+            end
+        end
+        C.capture_pending_count=(C.capture_pending_count or 0)+new_count
+        if new_count>0 then C.request_run("city_acquired") end
+    end
+    C.handle_new_regions=handle_new_regions
     core:add_listener("tk_auto_cities_occupied","GarrisonOccupiedEvent",
         function(c) return c:query_character():faction():name()==cm:get_local_faction(true) end,
-        function() C.request_run("city_captured") end,true)
+        function() handle_new_regions("garrison_occupied") end,true)
     core:add_listener("tk_auto_cities_new_owner","RegionOwnershipChanged",
         function(c) return not c:new_owner():is_null_interface() and c:new_owner():name()==cm:get_local_faction(true) end,
-        function() C.request_run("city_acquired") end,true)
+        function() handle_new_regions("ownership_changed") end,true)
     core:add_listener("tk_auto_cities_battle_ready","ScriptEventPlayerBattleSequenceFullyCompleteSP",
         function() return C.pending==true end,
         function() C.request_run(C.pending_reason or "city_captured") end,true)
@@ -1307,7 +1589,7 @@ local function initialize()
     -- AI construction completions must not schedule a player-wide scan.
     core:add_listener("tk_auto_cities_completed","BuildingCompleted",
         function(c) return c:building():faction():name()==cm:get_local_faction(true) end,
-        function() C.request_run("building_completed") end,true)
+        function() K.log("AUTO_EVENT building_completed deferred_until_next_turn") end,true)
     -- World/model events drive automation; opening menus only adds controls.
     -- The army planner is its own MOD (tk_auto_army.pack) and registers itself
     -- from its own entry point, so the two can be switched independently.

@@ -1,15 +1,34 @@
 TK_AUTO = TK_AUTO or {}
 local K=TK_AUTO
-local U={generation=0,page=1,picker_page=1,profile="agriculture",actions={},action_ids={},click_locks={},panel=nil,regions={},picker=nil}
+local U={generation=0,page=1,picker_page=1,profile="recommended",actions={},action_ids={},click_locks={},panel=nil,regions={},picker=nil}
 TK_AUTO_CITY_UI=U
-local profiles={"agriculture","commerce","industry","other"}
+local profiles={"agriculture","commerce","industry","other","recommended"}
 local function C() return TK_AUTO_CITIES end
+local element_names={metal="金",wood="木",water="水",fire="火",earth="土"}
+local element_order={"metal","wood","water","fire","earth"}
+local function current_template()
+    if U.mode=="gate" then
+        return C().state.profiles.gate
+    end
+    if U.mode=="county" then
+        C().state.county_templates=C().state.county_templates or {}
+        local e=U.element or "metal"
+        C().state.county_templates[e]=C().state.county_templates[e] or {[1]=false,[2]=false}
+        return C().state.county_templates[e]
+    end
+    return C().state.profiles[U.profile]
+end
+local function update_county()
+    if U.mode=="county" then
+        local t=current_template()
+        C().set_county_targets(U.element or "metal",t[1],t[2])
+    end
+end
 
 local function record(key)
     return "PlayersFaction.CapitalSettlementContext.PrimaryRegionSlotContext.BuildingContext.BuildingLevelRecordContext.RecordList.FirstContext(Key == "..K.quote(key)..")"
 end
 local title_cache={}
-local choices_cache=nil
 local effects_cache={}
 local faction_permissions,matching_variant
 local permissions_cache
@@ -173,7 +192,7 @@ local function change_profile(region,source)
     local config=state.cities[region]
     if not config then state.cities[region]={profile="agriculture",paused=false}
     else
-        local next=cycle(config.profile,{"agriculture","commerce","industry","other","off"})
+        local next=cycle(config.profile,{"agriculture","commerce","industry","other","recommended","off"})
         if next=="off" then state.cities[region]=nil else config.profile=next end
     end
     U.refresh()
@@ -222,7 +241,6 @@ function U.invalidate_panel()
     U.action_ids={}
     U.click_locks={}
     U.regions={}
-    choices_cache=nil
     title_cache={}
     effects_cache={}
 end
@@ -304,27 +322,48 @@ local function port_items()
     return result
 end
 
+-- Only hide duplicates inside the template currently being edited.
+-- A building may still appear in another city / elemental template.
+local function goal_taken_by_other_slot(candidate,selected_index)
+    local data=TK_AUTO_BUILDINGS[candidate]
+    if not data then return false end
+    local template=current_template()
+    local count=U.mode=="county" and 2 or (U.mode=="gate" and 6 or 10)
+    for i=1,count do
+        if i~=selected_index then
+            local existing=TK_AUTO_BUILDINGS[template[i]]
+            if existing and existing.superchain==data.superchain then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 local function picker_items()
     local result={}
     local permission=faction_permissions()
     for _,key in ipairs(TK_AUTO_BUILDING_CHOICES) do
-        if can_choose(key,permission) then result[#result+1]=key end
+        if can_choose(key,permission) and not goal_taken_by_other_slot(key,U.picker) then result[#result+1]=key end
     end
     return result
 end
 
 local function choose(key)
-    local tpl=C().state.profiles[U.profile]
+    local tpl=current_template()
     local index=U.picker
     local data=TK_AUTO_BUILDINGS[key]
-    if not data or not U.can_choose(key) then U.message=K.L("cannot_use");U.refresh();return end
-    for i=1,6 do
+    if not data or not U.can_choose(key) or goal_taken_by_other_slot(key,index) then
+        U.message="该建筑系列已用于本模板的另一个位置";U.refresh();return
+    end
+    for i=1,(U.mode=="county" and 2 or (U.mode=="gate" and 6 or 10)) do
         local old=TK_AUTO_BUILDINGS[tpl[i]]
         if i~=index and old and old.superchain==data.superchain then
             U.message=K.L("one_branch");U.refresh();return
         end
     end
     tpl[index]=key
+    update_county()
     U.picker=nil;U.pick_target=nil;U.message=nil;U.refresh();C().request_run()
 end
 
@@ -456,9 +495,11 @@ end
 
 local function render_picker(panel,x,y,width,height,px,py)
     if U.picker==0 then render_port_picker(panel,x,y,width,height,px,py);return end
-    if not choices_cache then choices_cache=picker_items() end
+    -- Rebuild the available choices for each open picker: cached choices are global,
+    -- but uniqueness depends on the active template and slot.
+    local available_choices=picker_items()
     local groups={}
-    for _,key in ipairs(choices_cache) do
+    for _,key in ipairs(available_choices) do
         local data=TK_AUTO_BUILDINGS[key]
         local category=data.category or "other"
         groups[category]=groups[category] or {}
@@ -584,7 +625,7 @@ local function render_panel()
         TK_AUTO_LOCALE.next_language()
         -- A completed pass contains already formatted text in the old language.
         C().ui_message=nil;C().ui_reasons=nil;U.message=nil
-        title_cache={};effects_cache={};choices_cache=nil
+        title_cache={};effects_cache={}
         U.refresh();U.attach_controls()
         if K.restore_toolbar then K.restore_toolbar() end
     end)
@@ -633,46 +674,112 @@ local function render_panel()
     K.label(panel,"tk_auto_money_label",K.L("reserve_money")..state.reserve_money,x+326,y+116,210,28)
     button(panel,"tk_auto_money_minus","−",x+540,y+116,34,28,function() state.reserve_money=math.max(0,state.reserve_money-500);U.refresh() end)
     button(panel,"tk_auto_money_plus","+",x+578,y+116,34,28,function() state.reserve_money=state.reserve_money+500;U.refresh() end)
-    for i,profile in ipairs(profiles) do
-        local selected=profile
-        button(panel,"tk_auto_profile_"..i,(U.profile==profile and "● " or "")..K.L("profile_"..profile),x+(i-1)*170,y+152,162,30,function()
-            U.profile=selected;U.picker=nil;U.pick_port=nil;U.pick_port_target=nil;U.pick_port_chain=nil;U.message=nil;U.refresh()
+    U.mode=U.mode or "capital"
+    U.element=U.element or "metal"
+    button(panel,"tk_auto_mode_capital",U.mode=="capital" and "● 主城建筑模板" or "主城建筑模板",x,y+151,156,30,function()
+        U.mode="capital";U.picker=nil;U.message=nil;U.refresh()
+    end)
+    button(panel,"tk_auto_mode_county",U.mode=="county" and "● 资源县五行模板" or "资源县五行模板",x+160,y+151,160,30,function()
+        U.mode="county";U.picker=nil;U.message=nil;U.refresh()
+    end)
+    button(panel,"tk_auto_mode_gate",U.mode=="gate" and "● 关隘六建筑" or "关隘六建筑",x+324,y+151,155,30,function()
+        U.mode="gate";U.picker=nil;U.message=nil;U.goal_page=1;U.refresh()
+    end)
+    if U.mode=="capital" then
+        button(panel,"tk_auto_global_cap",state.global_capitals and "全主城自动: 开" or "全主城自动: 关",x+485,y+151,155,30,function()
+            state.global_capitals=not state.global_capitals;U.refresh();C().request_run()
+        end)
+        button(panel,"tk_auto_cap_profile", "当前模板: "..K.L("profile_"..U.profile),x+215,y+185,220,30,function()
+            U.profile=cycle(U.profile,profiles);U.picker=nil;U.refresh()
+        end)
+    elseif U.mode=="county" then
+        for i,e in ipairs(element_order) do
+            local item=e
+            button(panel,"tk_auto_element_"..e,(U.element==e and "● " or "")..element_names[e],x+(i-1)*79,y+185,73,28,function()
+                U.element=item;U.picker=nil;U.message=nil;U.refresh()
+            end)
+        end
+        button(panel,"tk_auto_auto_county",state.auto_counties and "资源县自动: 开" or "资源县自动: 关",x+410,y+185,150,28,function()
+            C().enable_counties(not state.auto_counties);U.refresh();C().request_run()
         end)
     end
-    K.label(panel,"tk_auto_order_hint",K.L("order_hint"),x,y+186,width-50,30)
+    if U.mode~="county" then
+    button(panel,"tk_auto_global_recommended","一键全图推荐",x+410,y+185,154,28,function()
+        local count=C().apply_recommended_everywhere()
+        U.message="全图推荐已设置：主城推荐/资源县五行/关隘独立；更新 "..tostring(count).." 项"
+        U.profile="recommended";U.refresh();C().request_run("global_recommended")
+    end)
+    end
+    button(panel,"tk_auto_inspect","查建筑ID",x+742,y+185,108,28,function()
+        local region=U.selected_region or U.inline_region
+        if not region then U.message="请先选中己方地区";U.refresh();return end
+        local ok,items=C().inspect_region_buildings(region)
+        if not ok then U.message="读取失败: "..tostring(items)
+        else U.message="ID已写入脚本日志，共"..#items.."项。"..(items[1] or "") end
+        U.refresh()
+    end)
+    button(panel,"tk_auto_capture_sample","以选中地区作样板",x+570,y+185,164,28,function()
+        local region=U.selected_region or U.inline_region
+        if not region then U.message="请先在地图选中己方地区";U.refresh();return end
+        local ok,result
+        if U.mode=="county" then
+            ok,result=C().capture_county_template(region)
+            if ok then U.element=result end
+        else
+            ok,result=C().capture_capital_template(region)
+            if ok then U.profile="agriculture" end
+        end
+        U.message=ok and "样板已读取；请核对各目标" or ("读取失败: "..tostring(result))
+        U.refresh()
+    end)
     if U.picker then
         render_picker(panel,x,y,width,height,px,py)
         return
     end
-    local tpl=state.profiles[U.profile]
-    --Seven columns: the fixed building (a port branch) plus the six district
-    --slots. The fixed column has no "clear": the game pins that plot, so the
-    --note underneath simply states what the column is.
-    local cw=(width-48)/7
-    local ports=TK_AUTO_TEMPLATE_STORE.port_of(tpl)
-    local chosen={}
-    for _,key in pairs(ports) do chosen[#chosen+1]=building_title(key) end
-    table.sort(chosen)
-    button(panel,"tk_auto_slot_0","0. "..K.L("slot_fixed"),
-        x,y+222,cw-8,58,function()
+    -- A legacy save can have no gate profile; never abort the control row.
+    local tpl=current_template()
+    if type(tpl)~="table" then
+        if U.mode=="gate" then
+            C().state.profiles.gate={}
+            tpl=C().state.profiles.gate
+        else
+            tpl={}
+        end
+    end
+    if U.mode=="capital" or U.mode=="gate" then
+        button(panel,"tk_auto_goal_page",(U.goal_page==2 and (U.mode=="gate" and "关隘建筑 6/6" or "建筑 6-10 / 10") or (U.mode=="gate" and "关隘建筑 1-5/6" or "建筑 1-5 / 10")).."  [切换]",x,y+187,202,28,function()
+            U.goal_page=(U.goal_page==2) and 1 or 2;U.refresh()
+        end)
+    end
+    local count=U.mode=="county" and 2 or (U.mode=="gate" and (U.goal_page==2 and 1 or 5) or 5)
+    local start_index=U.mode=="county" and 1 or (U.goal_page==2 and 6 or 1)
+    -- Reserve column zero only in capital mode; gate has six district goals.
+    local cw=(width-48)/(U.mode=="gate" and 5 or (count+(U.mode=="capital" and 1 or 0)))
+    if U.mode=="capital" then
+        local ports=TK_AUTO_TEMPLATE_STORE.port_of(tpl)
+        local chosen={}
+        for _,key in pairs(ports) do chosen[#chosen+1]=building_title(key) end
+        button(panel,"tk_auto_slot_0","0. "..K.L("slot_fixed"),x,y+222,cw-8,58,function()
             U.picker=0;U.pick_port=true;U.pick_port_target=nil;U.pick_port_chain=nil
             U.picker_page=1;U.pick_category=nil;U.pick_chain=nil;U.pick_target=nil;U.effect_page=1;U.message=nil;U.refresh()
         end)
-    local note=K.L("port_unset")
-    if #chosen==1 then note=chosen[1]
-    elseif #chosen>1 then note=K.L("port_count")..#chosen..K.L("port_count2") end
-    local note_label=K.label(panel,"tk_auto_fixed_note",note,x,y+286,cw-8,26)
-    if note_label and #chosen>0 then
-        pcall(function() note_label:SetTooltipText(table.concat(chosen," / "),true) end)
+        K.label(panel,"tk_auto_fixed_note",#chosen>0 and table.concat(chosen," / ") or K.L("port_unset"),x,y+286,cw-8,26)
     end
-    for i=1,6 do
-        local index=i
-        local key=tpl[i]
-        button(panel,"tk_auto_slot_"..i,i..". "..building_title(key),x+i*cw,y+222,cw-8,58,function()
+    for pos=1,count do
+        local index=start_index+pos-1
+        local key=tpl[index]
+        local xx=x+(pos-1+(U.mode=="capital" and 1 or 0))*cw
+        -- An unsupported DLC building name must not prevent rendering the row.
+        local success,label=pcall(building_title,key)
+        if not success then
+            K.log("Gate/City target name failed at "..tostring(index)..": "..tostring(label))
+            label=key and ("未识别: "..tostring(key)) or K.L("pick_building")
+        end
+        button(panel,"tk_auto_slot_"..index,index..". "..tostring(label),xx,y+222,cw-8,58,function()
             U.picker=index;U.pick_port=nil;U.picker_page=1;U.pick_category=nil;U.pick_chain=nil;U.pick_target=nil;U.effect_page=1;U.message=nil;U.refresh()
         end)
-        if key then button(panel,"tk_auto_remove_"..i,K.L("clear"),x+i*cw,y+286,cw-8,26,function()
-            tpl[index]=false;U.refresh();C().request_run()
+        if key then button(panel,"tk_auto_remove_"..index,K.L("clear"),xx,y+286,cw-8,26,function()
+            tpl[index]=false;update_county();U.refresh();C().request_run()
         end) end
     end
     -- Two rows: what happened, and (when nothing happened) which settlements
@@ -709,7 +816,13 @@ function U.refresh()
     if not panel_visible() then return end
     local px,py=U.panel:Position()
     local ok,err=pcall(render_panel)
-    if not ok then K.log("City panel redraw failed: "..tostring(err)) end
+    if not ok then
+        K.log("City panel redraw failed ("..tostring(U.mode).."): "..tostring(err))
+        -- Visible failure report instead of an unexplained blank panel.
+        pcall(function()
+            K.label(U.panel,"tk_auto_render_failure", "关隘目标显示出错: "..tostring(err),px+22,py+320,790,70)
+        end)
+    end
     K.hold_panel("cities",U.panel)
 end
 
@@ -737,7 +850,7 @@ function U.open()
         U.close();U.panel=nil
         return
     end
-    choices_cache=nil;title_cache={};effects_cache={}
+    title_cache={};effects_cache={}
     local generation=U.generation
     K.defer(function()
         if generation~=U.generation or not panel_visible() then return end
