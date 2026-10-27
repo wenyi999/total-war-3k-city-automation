@@ -53,10 +53,33 @@ local function building_title(key)
 end
 U.building_title=building_title
 
+local function running_lock()
+    local c=C()
+    local sess=c and c.session or {}
+    return sess.run_state=="queued" or sess.run_state=="running" or c.busy==true
+end
+
+local function guarded_action(id,action)
+    return function()
+        if running_lock() then
+            K.log("UI_LOCK blocked button="..tostring(id).." phase="..tostring(C().session.run_state))
+            return
+        end
+        K.log("UI_ACTION begin "..tostring(id))
+        local ok,err=pcall(action)
+        K.log("UI_ACTION end "..tostring(id).." ok="..tostring(ok).." err="..tostring(not ok and err or ""))
+    end
+end
+
 local function button(parent,id,label,x,y,w,h,action)
+    if running_lock() and (id=="tk_auto_master" or id=="tk_auto_global_recommended" or id=="tk_auto_global_cap" or id=="tk_auto_auto_county" or id=="tk_auto_growth" or id=="tk_auto_gate" or id=="tk_auto_run") then
+        label=tostring(label).." [处理中]"
+    end
     local result=K.button(parent,id,label,x,y,w,h,650)
-    U.actions[id]=action
-    U.actions[id.."_text"]=action
+    local blocked=(id=="tk_auto_master" or id=="tk_auto_global_recommended" or id=="tk_auto_global_cap" or id=="tk_auto_auto_county" or id=="tk_auto_growth" or id=="tk_auto_gate" or id=="tk_auto_run" or id:match("^tk_auto_slot_") or id:match("^tk_auto_goal_") or id:match("^tk_auto_templates_"))
+    local callback=blocked and guarded_action(id,action) or action
+    U.actions[id]=callback
+    U.actions[id.."_text"]=callback
     U.action_ids[id]=id
     U.action_ids[id.."_text"]=id
     return result
@@ -246,9 +269,11 @@ function U.invalidate_panel()
 end
 
 function U.close()
+    K.log("UI_ROOT_DIAG close start panel="..tostring(U.panel).." phase="..tostring(C().session.run_state))
     U.open_flag=false
     if valid_component(U.panel) then pcall(function() U.panel:SetVisible(false) end) end
     U.picker=nil
+    K.log("UI_ROOT_DIAG close finished")
 end
 
 faction_permissions=function()
@@ -710,12 +735,18 @@ local function render_panel()
     end
     if U.mode~="county" then
     button(panel,"tk_auto_global_recommended","一键全图推荐",x+410,y+185,154,28,function()
+        K.log("RUN_PHASE recommended_config_begin")
         -- Clicking this explicit action opts in to construction for THIS session.
         C().session.auto_enabled=true
         K.log("SESSION_AUTO_ON by explicit global recommended click")
         local count=C().apply_recommended_everywhere()
+        K.log("RUN_PHASE recommended_config_done count="..tostring(count))
         U.message="全图推荐已设置：主城推荐/资源县五行/关隘独立；更新 "..tostring(count).." 项"
-        U.profile="recommended";U.refresh();C().request_run("global_recommended")
+        U.profile="recommended"
+        K.log("RUN_PHASE recommended_refresh_begin")
+        U.refresh()
+        K.log("RUN_PHASE recommended_refresh_done")
+        C().request_run("global_recommended")
     end)
     end
     button(panel,"tk_auto_inspect","查建筑ID",x+742,y+185,108,28,function()
@@ -835,11 +866,14 @@ function U.refresh()
 end
 
 function U.open()
-    if panel_visible() then U.close();return end
+    K.log("UI_ROOT_DIAG open begin panel_flag="..tostring(U.open_flag).." phase="..tostring(C().session.run_state))
+    if panel_visible() then K.log("UI_ROOT_DIAG open detected_visible => close");U.close();return end
     local created,problem=pcall(function()
         -- Acquire the live root after the click event has returned.
         local root=K.ui_root()
-        assert(valid_component(root),"UI root is unavailable")
+        local valid=valid_component(root)
+        K.log("UI_ROOT_DIAG root_present="..tostring(root~=nil).." valid="..tostring(valid))
+        assert(valid,"UI root is unavailable")
         local w,h=root:Dimensions()
         assert(type(w)=="number" and type(h)=="number" and w>80 and h>100,"UI dimensions are unavailable")
         U.panel=K.component(root,"tk_auto_city_settings","ui/tk_auto/panel.twui.xml")
@@ -849,11 +883,13 @@ function U.open()
         K.set_panel_anchor("cities",U.panel,K.panel_anchor["cities"] or "center")
         U.panel:PropagatePriority(640);U.panel:SetVisible(true)
         U.open_flag=true
+        K.log("UI_ROOT_DIAG open_created panel="..tostring(U.panel))
         -- Keep a usable close button even if model/catalog rendering fails.
         local px,py=U.panel:Position()
         button(U.panel,"tk_auto_close",K.L("close"),px+width-104,py+20,80,30,U.close)
     end)
     if not created then
+        K.log("UI_ROOT_DIAG open_error "..tostring(problem))
         K.log("Settings could not open: "..tostring(problem))
         U.close();U.panel=nil
         return
@@ -861,7 +897,7 @@ function U.open()
     title_cache={};effects_cache={}
     local generation=U.generation
     K.defer(function()
-        if generation~=U.generation or not panel_visible() then return end
+        if generation~=U.generation or not panel_visible() then K.log("UI_ROOT_DIAG deferred_draw_skipped"); return end
         local ok,err=pcall(function() regions();U.refresh() end)
         if not ok then
             K.log("Settings could not finish drawing: "..tostring(err))

@@ -4,7 +4,7 @@ local C = {version="0.1.49",state={version=1,enabled=false,
     -- template, the city key ranks cities against each other.
     build_sort="income_high",build_focus="all",city_sort="small",reserve_money=0,
     reserve_food=0,auto_growth=true,auto_gate=true,profiles={agriculture={},commerce={},industry={},other={},recommended={},gate={}},cities={},reservations={}},
-    busy=false,submitted={},demolish_order={},status={},run=nil,requests=0,session={auto_enabled=false,epoch=0}}
+    busy=false,submitted={},demolish_order={},status={},run=nil,requests=0,session={auto_enabled=false,epoch=0,run_state="idle"}}
 TK_AUTO_CITIES=C
 local SAVE="tk_auto_cities_v1"
 -- EDIT HERE: Building LEVEL IDs, not translated in-game names.
@@ -407,7 +407,7 @@ cm:add_loading_game_callback(function(context)
     -- Session-only opt-in: templates and city choices persist; construction
     -- is NEVER automatically re-enabled by loading a saved game.
     C.state.enabled=nil -- legacy save value is not authoritative anymore
-    C.session={auto_enabled=false,epoch=(C.session and C.session.epoch or 0)+1}
+    C.session={auto_enabled=false,epoch=(C.session and C.session.epoch or 0)+1,run_state="idle"}
     C.requests=C.requests+1 -- invalidate any old timer callbacks on reload
     C.force_pending=0
     C.busy=false
@@ -1093,6 +1093,7 @@ local function food_total() return K.number('PlayersFaction.PooledResourceContex
 local step
 local function finish(suppress_rerun)
     local run=C.run
+    K.log("RUN_PHASE finish_begin reason="..tostring(run and run.reason).." fault="..tostring(K.city_bridge_fault))
     if K.city_bridge_fault then
         K.log("BRIDGE_CIRCUIT stopped pass: reason="..tostring(run and run.reason).." submitted="..tostring(run and run.actions or 0))
         K.city_pass_active=false
@@ -1101,11 +1102,15 @@ local function finish(suppress_rerun)
         C.run=nil
         C.rerun=false
         C.force_pending=0 -- require new explicit click, never auto-loop on failure
+        C.session.run_state="error"
+        K.log("RUN_PHASE state=error circuit_trip")
         C.ui_message="读档上下文异常；已停止本轮施工，请查看日志"
         return
     end
     K.city_pass_active=false
     C.busy=false
+    C.session.run_state="idle"
+    K.log("RUN_PHASE state=idle finish")
     if run then
         K.log("Cities ("..tostring(run.reason).."): settlements="..#run.cities..
             " submitted="..run.actions.." confirmed="..(run.confirmed or 0)..
@@ -1431,6 +1436,7 @@ step=function()
 end
 
 function C.run_now(synchronous,reason)
+    K.log("RUN_PHASE enter reason="..tostring(reason).." current_state="..tostring(C.session.run_state))
     synchronous=synchronous==true
     -- Both early exits below are silent no-ops otherwise, and a button that
     -- appears to do nothing is indistinguishable from a broken one. Say why.
@@ -1541,6 +1547,8 @@ function C.run_now(synchronous,reason)
     local run={cities=cities,snapshots={},index=1,actions=0,confirmed=0,start_cash=math.min(treasury(),carry_cash or treasury()),start_food=food_total(),spent=0,
         reserved_food=0,synchronous=synchronous,reason=reason or "settings",reasons={},acted={}}
     C.run=run;C.busy=true
+    C.session.run_state="running"
+    K.log("RUN_PHASE state=running reason="..tostring(reason).." candidates="..#cities)
     K.city_bridge_fault=false
     K.city_pass_active=true
     if not bridge_healthy() then
@@ -1583,18 +1591,33 @@ function C.request_run(reason)
     reason=reason or "settings"
     local forced=(reason=="manual" or reason=="global_recommended")
     if forced then
-        C.force_pending=(C.force_pending or 0)+1
-        K.log("FORCE_REQUEST reason="..reason.." queued="..C.force_pending)
-        if C.busy then return end
-        C.force_pending=C.force_pending-1
-        -- Return from UI callback before touching PlayersFaction/CCO context.
+        local state=C.session.run_state or "idle"
+        if state=="queued" or state=="running" or C.busy then
+            K.log("RUN_LOCK rejected force reason="..tostring(reason).." state="..tostring(state))
+            return false
+        end
+        C.session.run_state="queued"
+        K.log("RUN_PHASE state=queued FORCE_REQUEST reason="..tostring(reason))
         local epoch=C.session.epoch
         K.defer(function()
-            if C.session.epoch~=epoch or not C.session.auto_enabled then return end
-            K.log("FORCE_DISPATCH deferred reason="..tostring(reason))
-            C.run_now(false,reason)
-        end,0.25,"tk_auto_force_dispatch")
-        return
+            if C.session.epoch~=epoch then return end
+            if not C.session.auto_enabled then
+                C.session.run_state="idle"
+                K.log("RUN_PHASE dispatched_off reason="..tostring(reason))
+                return
+            end
+            K.log("RUN_PHASE dispatch_begin reason="..tostring(reason))
+            local ok,err=pcall(function() C.run_now(false,reason) end)
+            if not ok then
+                C.session.run_state="error"
+                C.busy=false;C.run=nil;K.city_pass_active=false
+                K.log("RUN_PHASE dispatch_error "..tostring(err))
+            elseif not C.busy and C.session.run_state=="queued" then
+                C.session.run_state="idle"
+                K.log("RUN_PHASE dispatch_no_run reason="..tostring(reason))
+            end
+        end,0.35,"tk_auto_force_dispatch")
+        return true
     end
     C.pending=true
     C.pending_reason=reason
