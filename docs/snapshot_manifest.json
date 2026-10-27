@@ -1,0 +1,74 @@
+{
+  "snapshots": [
+    {
+      "tag": "archive/ui-beta",
+      "pack": "tk_auto_cities_ui_beta(1).pack",
+      "sha256": "49ba4702f593c9edee64bbb0349a62bc5ddc35271eee2e946cf54316f03c7bae"
+    },
+    {
+      "tag": "archive/recommended-beta",
+      "pack": "tk_auto_cities_recommended_beta(1).pack",
+      "sha256": "64278b66bc8e9a46ab3f1900bc97151dc5d7692d596eec763984ae3bf33cf0b4"
+    },
+    {
+      "tag": "archive/gate-slots-fixed",
+      "pack": "tk_auto_cities_gate_slots_fixed(1).pack",
+      "sha256": "b640f1022687001135f2bc4f82d5eb11a12a399a1874b6e4afc607fe2cbd4639"
+    },
+    {
+      "tag": "archive/global-recommended-debug",
+      "pack": "tk_auto_cities_global_recommended_debug_beta(1).pack",
+      "sha256": "2aca69a259442af2afe61231e17aec34c8d3c4c311d752b001ce33f9ea6bb738"
+    },
+    {
+      "tag": "archive/full-alpha",
+      "pack": "tk_auto_cities_full_alpha(1).pack",
+      "sha256": "0e9a471fc2a23466f567a25ca4c072761cfed53c47b26e0dcca67c43c97389e7"
+    },
+    {
+      "tag": "archive/runtime-diagnostics",
+      "pack": "tk_auto_cities_runtime_diagnostics_beta(1).pack",
+      "sha256": "ef8f1358b0c75099ceb593711827ff1c5f64303be4d72aafb3507640e7329b86"
+    },
+    {
+      "tag": "archive/county-element-fix",
+      "pack": "tk_auto_cities_county_element_fix_beta.pack",
+      "sha256": "1fbe917cde714335ddf3bc076ce184c90a71c7a03f563c46910820fc15d677ba"
+    },
+    {
+      "tag": "archive/hybrid-resource",
+      "pack": "tk_auto_cities_hybrid_resource_beta(1).pack",
+      "sha256": "49acb40648aeae6631f477923804ae60e1b381204c1333a22d077d0877e71ff1"
+    },
+    {
+      "tag": "archive/bridge-guard",
+      "pack": "tk_auto_cities_bridge_guard_beta(2).pack",
+      "sha256": "4113c15351dfd3d0ab41f85d76eb343d13950f999a397bd05bca2b2bc047c38c"
+    },
+    {
+      "tag": "archive/bridge-circuit",
+      "pack": "tk_auto_cities_bridge_circuit_beta.pack",
+      "sha256": "6f1b477860eec49b7f9b41e497699d697bb7253cbcae319098d5150010343b1f"
+    },
+    {
+      "tag": "archive/session-refactor",
+      "pack": "tk_auto_cities_session_refactor_beta(1).pack",
+      "sha256": "44538255654494190d96a390a07eac69276d7e50b731acb2013c0e10147c9e6d"
+    },
+    {
+      "tag": "archive/ui-phase-lock",
+      "pack": "City_Automation_UI_Phase_Lock_latest(1).pack",
+      "sha256": "9341e3499d589fb87f7355b53f497e72dcbd55554469ad1b8a76d948907f95ff"
+    },
+    {
+      "tag": "archive/isolation-a-hybrid",
+      "pack": "tk_auto_cities_isolation_A_hybrid_only(1).pack",
+      "sha256": "49acb40648aeae6631f477923804ae60e1b381204c1333a22d077d0877e71ff1"
+    },
+    {
+      "tag": "archive/isolation-b-deferred",
+      "pack": "tk_auto_cities_isolation_B_deferred_only(1).pack",
+      "sha256": "01af8650d6b53d2d7cac637b6e6a862ad9d91d0afbf9369f98a613cd5cb09680"
+    }
+  ]
+}
