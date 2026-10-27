@@ -62,7 +62,7 @@ function G.is_gate(region, settlement_expression)
     return false
 end
 
-function G.snapshot(region, read_slot, district_goals)
+function G.snapshot(region, read_slot)
     if type(read_slot) ~= "function" then return nil, "gate_reader_unavailable" end
     if not G.is_gate(region) then return nil, "not_a_gate" end
     local ok, snapshot, reason = pcall(function()
@@ -76,27 +76,21 @@ function G.snapshot(region, read_slot, district_goals)
         local catalog = TK_AUTO_BUILDINGS or {}
         local expression = TK_AUTO.settlement(region)
         local result = {region=region, expression=expression, owned=true, paused=false,
-            siege=query:garrison_residence():is_under_siege(), slots={},district_slots={}}
+            siege=query:garrison_residence():is_under_siege(), slots={}}
         -- Only confirmed gates enter this path. Reuse the existing CCO reader;
         -- query slot ordering need not equal the UI RegionSlotList ordering.
         local count = TK_AUTO.number(expression .. ".RegionSlotList.Size")
         for index = 0, math.min(count, 64) - 1 do
-            local slot = read_slot(expression, index, district_goals)
-            if slot then
-                local chain=slot.key and chains[slot.key] or nil
-                if slot.key and (gate_key(chain) or catalog_gate(catalog[slot.key])) then
-                    slot.gate_chain=chain or (catalog[slot.key] and catalog[slot.key].chain)
-                    result.slots[#result.slots+1]=slot
-                elseif not TK_AUTO.bool(expression..".RegionSlotList.At("..index..").IsPrimary") and
-                    not slot.fixed_only and not slot.foreign and
-                    (not slot.key or (catalog[slot.key] and catalog[slot.key].template_slot)) then
-                    -- Only ordinary district plots; never feed native gate chains to
-                    -- the generic city planner. Limit count at the planner instead.
-                    result.district_slots[#result.district_slots+1]=slot
+            local slot = read_slot(expression, index)
+            if slot and slot.key then
+                local chain = chains[slot.key]
+                if gate_key(chain) or catalog_gate(catalog[slot.key]) then
+                    slot.gate_chain = chain or (catalog[slot.key] and catalog[slot.key].chain)
+                    result.slots[#result.slots+1] = slot
                 end
             end
         end
-        if #result.slots == 0 and #result.district_slots == 0 then return nil, "gate_slots_unavailable" end
+        if #result.slots == 0 then return nil, "gate_slots_unavailable" end
         return result
     end)
     if not ok then return nil, "gate_snapshot_unavailable" end

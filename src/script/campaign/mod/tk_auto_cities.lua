@@ -3,7 +3,7 @@ local C = {version="0.1.49",state={version=1,enabled=true,
     -- Two separate orderings: the building pair ranks the entries of one city's
     -- template, the city key ranks cities against each other.
     build_sort="income_high",build_focus="all",city_sort="small",reserve_money=0,
-    reserve_food=0,auto_growth=true,auto_gate=true,profiles={agriculture={},commerce={},industry={},other={},recommended={},gate={}},cities={},reservations={}},
+    reserve_food=0,auto_growth=true,auto_gate=true,profiles={agriculture={},commerce={},industry={},other={}},cities={},reservations={}},
     busy=false,submitted={},demolish_order={},status={},run=nil,requests=0}
 TK_AUTO_CITIES=C
 local SAVE="tk_auto_cities_v1"
@@ -28,103 +28,6 @@ for _,data in pairs(TK_AUTO_BUILDINGS) do
 end
 local food_effects='EffectKey == "3k_main_effect_province_food_consumption_distribution" || EffectKey == "3k_main_effect_province_food_abs_sold_markets" || EffectKey == "3k_main_effect_province_food_abs_farming" || EffectKey == "3k_main_effect_province_food_abs_fishing" || EffectKey == "3k_main_effect_province_food_abs_foraging" || EffectKey == "3k_dlc05_effect_province_food_abs_banditry"'
 
--- The recommended preset is independent of agriculture/commerce/industry/other.
--- IDs reflect the included 1.7.2 building catalogue. Users can edit these in
--- the existing ten-target editor. A few requested Chinese names differ from
--- the catalogue and should be verified in-game before enabling automation.
-local RECOMMENDED_DEFAULT={
-    "3k_district_artisan_mines_5", -- industrial mining workers (closest catalogue match)
-    "3k_district_artisan_workshop_state_5", -- state workshop
-    "3k_district_artisan_workshop_lacquer_5", -- lacquer workshop
-    "3k_district_residential_government_tools_5", -- fan cart / agricultural tools line; modern catalog: 簸谷机器作坊
-    "3k_district_residential_landlords_5", -- landlords
-    "3k_district_market_tea_5", -- tea house
-    "3k_district_market_trade_5", -- trade guild
-    "3k_district_military_security_province_northern_horses_5", -- White Horse Garrison
-    "3k_district_government_administration_5", -- palace
-    false, -- faction-specific structure / training camp: select in the UI
-}
-local function ensure_recommended_profile()
-    C.state.profiles=C.state.profiles or {}
-    if C.state.profiles.recommended and next(C.state.profiles.recommended) then return end
-    local profile={port={}}
-    for i=1,10 do
-        local key=RECOMMENDED_DEFAULT[i]
-        local data=key and TK_AUTO_BUILDINGS[key]
-        profile[i]=(data and data.template_slot) and key or false
-    end
-    C.state.profiles.recommended=profile
-end
-ensure_recommended_profile()
-
--- Gate: its own six-goal district profile, independent of capital templates.
--- Unverified named branches are deliberately left editable rather than guessed.
-local GATE_DEFAULT_NAMES={
-    "派系特色建筑（无特色时：大型郡国学）", "扇车工坊", "豪强田产", "大型邸阁",
-    "白马义从团部", "讲武营（征募三级）"
-}
--- Name resolution uses BUILDING CHAIN, not an unverified exact Chinese label.
--- Original game labels differ from the bundled 1.7.2 catalog.
--- Candidate preview for in-game label verification ONLY:
--- slot 1 uses 孙坚江东兵府 as an UNVERIFIED stand-in for 孙策佣兵大帐;
--- slot 4 uses 南蛮国廪 as an UNVERIFIED stand-in for 大型邸阁.
--- The game may deny construction for faction or culture restrictions.
--- Other four goals are catalog matches; the conscription level 3 is
--- named 训练营 in catalog but shown 讲武营 in supplied screenshot.
-local GATE_DEFAULT={
-    "3k_district_market_school_5",                    -- fallback school until actual mercenary DLC key is supplied
-    "3k_district_residential_government_tools_5",    -- 簸谷机器作坊 / fan cart branch
-    "3k_district_residential_landlords_5",           -- 豪右农庄 / landowners branch
-    "3k_dlc06_district_residential_logistics_5",     -- GUESS 国廪, NOT verified 大型邸阁
-    "3k_district_military_security_province_northern_horses_5", -- 白马义从团部
-    "3k_district_military_conscription_3",           -- screenshot: 讲武营, 征募三级; catalog: 训练营
-}
-local function ensure_gate_profile()
-    C.state.profiles=C.state.profiles or {}
-    local p=C.state.profiles.gate
-    if type(p)~="table" then p={} end
-    -- Upgrade only the original almost-empty Gate Beta preset. Never overwrite
-    -- an edited profile (including deliberately cleared goals).
-    local old_fifth="3k_district_military_security_province_5"
-    local previous=not p._verified_defaults_v1 and
-      (p[1]==nil or p[1]==false) and (p[2]==nil or p[2]==false) and
-      (p[3]==nil or p[3]==false) and (p[4]==nil or p[4]==false) and
-      (p[5]==nil or p[5]==false or p[5]==old_fifth) and
-      (p[6]==nil or p[6]==false)
-    -- Preview preset migration: replace ONLY unchanged original screenshot-beta
-    -- defaults or the prior blank gate profile. Never overwrite edited goals.
-    local prior_v1={
-        "3k_district_market_school_5",
-        "3k_district_residential_government_tools_5",
-        "3k_district_residential_landlords_5",
-        "3k_district_residential_logistics_5",
-        "3k_district_military_security_province_northern_horses_5",
-        "3k_district_military_conscription_3",
-    }
-    local prior_unchanged = p._verified_defaults_v1 and not p._candidate_preview_v2
-    if prior_unchanged then
-        for i=1,6 do
-            if p[i]~=prior_v1[i] then prior_unchanged=false;break end
-        end
-    end
-    if previous or prior_unchanged then
-        for i=1,6 do
-            local k=GATE_DEFAULT[i]
-            p[i]=(TK_AUTO_BUILDINGS[k] and TK_AUTO_BUILDINGS[k].template_slot) and k or false
-        end
-        p._verified_defaults_v1=true
-        p._candidate_preview_v2=true
-    end
-    -- Old candidate preview can refer to a foreign faction building which
-    -- fails the player's permissions and appears blank in the picker.
-    -- Replace it only if the template still carries that exact placeholder.
-    if p[1]=="3k_district_artisan_sun_jian_fealty_5" then
-        p[1]="3k_district_market_school_5"
-    end
-    p.port=p.port or {};p._initialized=true
-    C.state.profiles.gate=p
-end
-ensure_gate_profile()
 local function migrate_templates()
     for name,template in pairs(C.state.profiles) do
         local clean={}
@@ -155,7 +58,6 @@ local function migrate_templates()
                 if key then K.log("Removed fixed/missing building from "..name.." template position "..i..": "..tostring(key)) end
             end
         end
-        if name=="gate" then clean._initialized=true; clean._verified_defaults_v1=template._verified_defaults_v1; clean._candidate_preview_v2=template._candidate_preview_v2 end
         C.state.profiles[name]=clean
     end
 end
@@ -168,29 +70,6 @@ local function county_settings()
     if type(C.state.county_templates)~="table" then C.state.county_templates={} end
     return C.state.county_templates
 end
--- Default resource-county templates. Only seed a category when it was never
--- configured. An intentionally cleared or edited category stays untouched.
-local COUNTY_DEFAULTS={
-    metal={"3k_district_artisan_workshop_state_5","3k_district_artisan_workshop_lacquer_5"},
-    fire={"3k_district_artisan_workshop_state_5","3k_district_artisan_workshop_lacquer_5"},
-    earth={"3k_district_artisan_workshop_state_5","3k_district_artisan_workshop_lacquer_5"},
-    wood={"3k_district_residential_government_tools_5","3k_district_residential_landlords_5"},
-    water={"3k_district_market_tea_5","3k_district_market_trade_5"},
-}
-local function ensure_county_defaults()
-    local t=county_settings()
-    for element,pair in pairs(COUNTY_DEFAULTS) do
-        if type(t[element])~="table" then
-            t[element]={}
-            for i=1,2 do
-                local key=pair[i]
-                local data=TK_AUTO_BUILDINGS[key]
-                t[element][i]=(data and data.template_slot) and key or false
-            end
-        end
-    end
-end
-ensure_county_defaults()
 local function get_element(key)
     if type(key)~="string" then return nil end
     for _,element in ipairs(ELEMENTS) do
@@ -299,54 +178,11 @@ local function region_config(region)
     local config=C.state.cities[region]
     if config then return config end
     if C.state.global_capitals then
-        return {profile=C.state.global_default_profile or "agriculture",paused=false}
+        return {profile="agriculture",paused=false}
     end
     return nil
 end
 C.region_config=region_config
--- One-click setup: use the recommended profile for every owned capital,
--- preserve the separate gate profile, and enable five-element county defaults.
--- Explicitly assigned city profiles are updated too, avoiding repeated cycling.
-function C.apply_recommended_everywhere()
-    ensure_recommended_profile()
-    ensure_county_defaults()
-    C.state.global_default_profile="recommended"
-    C.state.global_capitals=true
-    C.state.auto_counties=true
-    C.state.auto_gate=true
-    C.state.cities=C.state.cities or {}
-    local changed=0
-    for _,config in pairs(C.state.cities) do
-        if type(config)=="table" then
-            config.profile="recommended"
-            config.paused=false
-            changed=changed+1
-        end
-    end
-    K.log("Recommended global default applied; existing city overrides updated="..changed)
-    return changed
-end
--- Read-only ID inspector for currently selected region. Lists actual built
--- building level keys (including DLC), not predictions from the static catalog.
-function C.inspect_region_buildings(region)
-    if not region or not K.owns_region(region) then return false,"not_an_owned_region" end
-    local p=K.settlement(region)
-    local n=K.number(p..".RegionSlotList.Size")
-    local found={}
-    for i=0,n-1 do
-        local slot=p..".RegionSlotList.At("..i..")"
-        if not K.bool(slot..".IsEmpty") then
-            local key=K.read(slot..".BuildingContext.BuildingLevelRecordContext.Key")
-            if key and key~="" then
-                local d=TK_AUTO_BUILDINGS[key]
-                local item=tostring(i)..": "..tostring(key).." | "..tostring(d and d.name or "not in static catalog")
-                found[#found+1]=item
-                K.log("INSPECT "..tostring(region).." "..item)
-            end
-        end
-    end
-    return true,found
-end
 
 -- Bandit-only buildings are useless (and actively harmful) to every other
 -- culture, so they are demolished rather than repaired. A bandit lord keeps
@@ -374,10 +210,8 @@ cm:add_saving_game_callback(function(context) cm:save_named_value(SAVE,C.state,c
 cm:add_loading_game_callback(function(context)
     local saved=cm:load_named_value(SAVE,C.state,context)
     if type(saved)=="table" and saved.version==1 then C.state=saved end
-    ensure_recommended_profile()
-    ensure_gate_profile()
     C.state.reservations=C.state.reservations or {}
-    ensure_county_defaults()
+    county_settings()
     if C.state.auto_counties==nil then C.state.auto_counties=false end
     C.demolish_order=C.demolish_order or {}
     if C.state.auto_gate==nil then C.state.auto_gate=true end
@@ -958,7 +792,7 @@ C.is_gate_pass=is_gate_pass
 
 local function gate_snapshot(region)
     if not TK_AUTO_GATES then return nil end
-    local ok,city=pcall(TK_AUTO_GATES.snapshot,region,read_slot,C.state.profiles.gate or {})
+    local ok,city=pcall(TK_AUTO_GATES.snapshot,region,read_slot)
     if ok then return city end
     K.warn("gate_snapshot:"..tostring(region),"Gate snapshot failed: "..tostring(city))
 end
@@ -1107,10 +941,6 @@ local function process_next(run)
             if type(ordered)=="table" and ordered.key then slot.key=ordered.key;slot.foreign=false end
         end
     end
-    for _,slot in ipairs(city.district_slots or {}) do
-        local ordered=C.submitted[region..":"..slot.index]
-        if ordered then slot.busy=true;slot.ordered_this_pass=true end
-    end
     if city.primary and C.submitted[region..":"..city.primary.index] then city.primary.busy=true end
     -- Slots whose demolition we already ordered, still holding the same building.
     -- The planners must neither re-issue the command (Demolish toggles, so a second
@@ -1156,20 +986,9 @@ local function process_next(run)
     run.available_cash,run.available_food=cash,food
     local plan,reason
     if gate then
-        local gate_goals=C.state.profiles.gate or {}
-        -- Ordinary district slots in gates share the city planner; the special
-        -- gate-only construction chain remains under the original gate planner.
-        if city.district_slots and #city.district_slots>0 and has_targets(gate_goals) then
-            local district={region=region,owned=true,paused=false,siege=city.siege,
-                slots=city.district_slots,capacity=math.min(#city.district_slots,6)}
-            plan,reason=K.next_city_action(district,gate_goals,TK_AUTO_BUILDINGS,
-                cash,food,false,C.state.build_focus,C.state.build_sort)
-        end
-        if not plan then
-            local ok,result,why=pcall(TK_AUTO_GATES.next_action,city,TK_AUTO_BUILDINGS,cash,food)
-            if ok then plan,reason=result,why
-            else reason="gate_waiting";K.warn("gate_plan:"..region,"Gate planner failed: "..tostring(result)) end
-        end
+        local ok,result,why=pcall(TK_AUTO_GATES.next_action,city,TK_AUTO_BUILDINGS,cash,food)
+        if ok then plan,reason=result,why
+        else reason="gate_waiting";K.warn("gate_plan:"..region,"Gate planner failed: "..tostring(result)) end
     elseif fixed then plan,reason=K.next_fixed_action(city,TK_AUTO_BUILDINGS,cash,food)
     elseif county then
         plan,reason=K.next_city_action(city,county_settings()[city.element] or {},TK_AUTO_BUILDINGS,
