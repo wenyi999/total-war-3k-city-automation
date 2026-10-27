@@ -75,6 +75,12 @@ function T.normalize(profiles,allowed)
         end
         result[name]=target
     end
+    -- Gate is a separate six-goal template: preserve it when normalizing
+    -- capital profiles. It is NOT an ordinary capital export profile.
+    local gate=type(profiles)=="table" and profiles.gate or nil
+    if type(gate)=="table" then
+        result.gate=gate
+    end
     return result,removed
 end
 

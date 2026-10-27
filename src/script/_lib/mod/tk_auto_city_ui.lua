@@ -7,6 +7,9 @@ local function C() return TK_AUTO_CITIES end
 local element_names={metal="金",wood="木",water="水",fire="火",earth="土"}
 local element_order={"metal","wood","water","fire","earth"}
 local function current_template()
+    if U.mode=="gate" then
+        return C().state.profiles.gate
+    end
     if U.mode=="county" then
         C().state.county_templates=C().state.county_templates or {}
         local e=U.element or "metal"
@@ -325,7 +328,7 @@ local function goal_taken_by_other_slot(candidate,selected_index)
     local data=TK_AUTO_BUILDINGS[candidate]
     if not data then return false end
     local template=current_template()
-    local count=U.mode=="county" and 2 or 10
+    local count=U.mode=="county" and 2 or (U.mode=="gate" and 6 or 10)
     for i=1,count do
         if i~=selected_index then
             local existing=TK_AUTO_BUILDINGS[template[i]]
@@ -353,7 +356,7 @@ local function choose(key)
     if not data or not U.can_choose(key) or goal_taken_by_other_slot(key,index) then
         U.message="该建筑系列已用于本模板的另一个位置";U.refresh();return
     end
-    for i=1,(U.mode=="county" and 2 or 10) do
+    for i=1,(U.mode=="county" and 2 or (U.mode=="gate" and 6 or 10)) do
         local old=TK_AUTO_BUILDINGS[tpl[i]]
         if i~=index and old and old.superchain==data.superchain then
             U.message=K.L("one_branch");U.refresh();return
@@ -679,14 +682,17 @@ local function render_panel()
     button(panel,"tk_auto_mode_county",U.mode=="county" and "● 资源县五行模板" or "资源县五行模板",x+160,y+151,160,30,function()
         U.mode="county";U.picker=nil;U.message=nil;U.refresh()
     end)
+    button(panel,"tk_auto_mode_gate",U.mode=="gate" and "● 关隘六建筑" or "关隘六建筑",x+324,y+151,155,30,function()
+        U.mode="gate";U.picker=nil;U.message=nil;U.goal_page=1;U.refresh()
+    end)
     if U.mode=="capital" then
-        button(panel,"tk_auto_global_cap",state.global_capitals and "全主城自动: 开" or "全主城自动: 关",x+327,y+151,155,30,function()
+        button(panel,"tk_auto_global_cap",state.global_capitals and "全主城自动: 开" or "全主城自动: 关",x+485,y+151,155,30,function()
             state.global_capitals=not state.global_capitals;U.refresh();C().request_run()
         end)
-        button(panel,"tk_auto_cap_profile", "当前模板: "..K.L("profile_"..U.profile),x+488,y+151,177,30,function()
+        button(panel,"tk_auto_cap_profile", "当前模板: "..K.L("profile_"..U.profile),x+215,y+185,220,30,function()
             U.profile=cycle(U.profile,profiles);U.picker=nil;U.refresh()
         end)
-    else
+    elseif U.mode=="county" then
         for i,e in ipairs(element_order) do
             local item=e
             button(panel,"tk_auto_element_"..e,(U.element==e and "● " or "")..element_names[e],x+(i-1)*79,y+185,73,28,function()
@@ -715,15 +721,25 @@ local function render_panel()
         render_picker(panel,x,y,width,height,px,py)
         return
     end
+    -- A legacy save can have no gate profile; never abort the control row.
     local tpl=current_template()
-    if U.mode=="capital" then
-        button(panel,"tk_auto_goal_page",(U.goal_page==2 and "建筑 6-10 / 10" or "建筑 1-5 / 10").."  [切换]",x,y+187,202,28,function()
+    if type(tpl)~="table" then
+        if U.mode=="gate" then
+            C().state.profiles.gate={}
+            tpl=C().state.profiles.gate
+        else
+            tpl={}
+        end
+    end
+    if U.mode=="capital" or U.mode=="gate" then
+        button(panel,"tk_auto_goal_page",(U.goal_page==2 and (U.mode=="gate" and "关隘建筑 6/6" or "建筑 6-10 / 10") or (U.mode=="gate" and "关隘建筑 1-5/6" or "建筑 1-5 / 10")).."  [切换]",x,y+187,202,28,function()
             U.goal_page=(U.goal_page==2) and 1 or 2;U.refresh()
         end)
     end
-    local count=U.mode=="county" and 2 or 5
+    local count=U.mode=="county" and 2 or (U.mode=="gate" and (U.goal_page==2 and 1 or 5) or 5)
     local start_index=U.mode=="county" and 1 or (U.goal_page==2 and 6 or 1)
-    local cw=(width-48)/(count+1)
+    -- Reserve column zero only in capital mode; gate has six district goals.
+    local cw=(width-48)/(count+(U.mode=="capital" and 1 or 0))
     if U.mode=="capital" then
         local ports=TK_AUTO_TEMPLATE_STORE.port_of(tpl)
         local chosen={}
@@ -737,8 +753,14 @@ local function render_panel()
     for pos=1,count do
         local index=start_index+pos-1
         local key=tpl[index]
-        local xx=x+pos*cw
-        button(panel,"tk_auto_slot_"..index,index..". "..building_title(key),xx,y+222,cw-8,58,function()
+        local xx=x+(pos-1+(U.mode=="capital" and 1 or 0))*cw
+        -- An unsupported DLC building name must not prevent rendering the row.
+        local success,label=pcall(building_title,key)
+        if not success then
+            K.log("Gate/City target name failed at "..tostring(index)..": "..tostring(label))
+            label=key and ("未识别: "..tostring(key)) or K.L("pick_building")
+        end
+        button(panel,"tk_auto_slot_"..index,index..". "..tostring(label),xx,y+222,cw-8,58,function()
             U.picker=index;U.pick_port=nil;U.picker_page=1;U.pick_category=nil;U.pick_chain=nil;U.pick_target=nil;U.effect_page=1;U.message=nil;U.refresh()
         end)
         if key then button(panel,"tk_auto_remove_"..index,K.L("clear"),xx,y+286,cw-8,26,function()
@@ -779,7 +801,13 @@ function U.refresh()
     if not panel_visible() then return end
     local px,py=U.panel:Position()
     local ok,err=pcall(render_panel)
-    if not ok then K.log("City panel redraw failed: "..tostring(err)) end
+    if not ok then
+        K.log("City panel redraw failed ("..tostring(U.mode).."): "..tostring(err))
+        -- Visible failure report instead of an unexplained blank panel.
+        pcall(function()
+            K.label(U.panel,"tk_auto_render_failure", "关隘目标显示出错: "..tostring(err),px+22,py+320,790,70)
+        end)
+    end
     K.hold_panel("cities",U.panel)
 end
 
