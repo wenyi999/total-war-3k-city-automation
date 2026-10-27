@@ -1,0 +1,84 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<layout version="135" comment="TK_AUTO native widget hierarchy; empty preview root" precache_condition="">
+  <hierarchy>
+    <root this="F3B9A13F-72AD-44F8-8B85-3B629534D890">
+      <square_large_text_button this="A7AAAEA8-88C4-4A8E-B29E-6B501E6E69D3">
+        <button_txt this="A01B7921-BBE5-4CD3-95F8-75E1A2DFB0C8"/>
+      </square_large_text_button>
+    </root>
+  </hierarchy>
+  <components><root this="F3B9A13F-72AD-44F8-8B85-3B629534D890" id="root" tooltipslocalised="true" uniqueguid="F3B9A13F-72AD-44F8-8B85-3B629534D890" currentstate="39C63539-2689-47D3-BB1D-2C69313D2B67" defaultstate="39C63539-2689-47D3-BB1D-2C69313D2B67">
+			<states>
+				<newstate this="39C63539-2689-47D3-BB1D-2C69313D2B67" name="NewState" width="1" height="1" interactive="false" uniqueguid="39C63539-2689-47D3-BB1D-2C69313D2B67">
+					</newstate>
+			</states>
+		</root>
+		<square_large_text_button this="A7AAAEA8-88C4-4A8E-B29E-6B501E6E69D3" id="square_large_text_button" offset="0.00,0.00" docking="None" component_anchor_point="0.00,0.00" priority="650" tooltipslocalised="true" soundcategory="UI_GBL_TMP_Square_Large_Text_Button" uniqueguid="A7AAAEA8-88C4-4A8E-B29E-6B501E6E69D3" currentstate="6E06B339-8C26-4486-9EC0-CFBA9D36761A" defaultstate="6E06B339-8C26-4486-9EC0-CFBA9D36761A" allowhorizontalresize="true" allowverticalresize="true" isrelativeresize="false">
+			<componentimages>
+				<component_image this="CB1A6DFE-36E2-4C4E-8109-488B03CF4D35" uniqueguid="CB1A6DFE-36E2-4C4E-8109-488B03CF4D35" imagepath="ui/skins/default/button_rectangular_backplate.png" width="254" height="60"/>
+				<component_image this="6725B473-74F2-452A-BA79-D8FCC763D21E" uniqueguid="6725B473-74F2-452A-BA79-D8FCC763D21E" imagepath="ui/skins/default/button_rectangular_glow.png" width="500" height="500"/>
+				<component_image this="F1CD76CB-76DE-4D9E-9939-C21EBF4A4307" uniqueguid="F1CD76CB-76DE-4D9E-9939-C21EBF4A4307" imagepath="ui/skins/default/button_square_highlight_vertical.png" width="100" height="292"/>
+				<component_image this="88ECD467-FEC4-4FFB-B7E5-3C820A7089A3" uniqueguid="88ECD467-FEC4-4FFB-B7E5-3C820A7089A3" imagepath="ui/skins/default/button_square_hover_highlight_vertical.png" width="100" height="292"/>
+				<component_image this="474191DA-016C-48DA-A059-76DF80807BBC" uniqueguid="474191DA-016C-48DA-A059-76DF80807BBC" imagepath="ui/skins/default/button_rectangular_frame.png" width="254" height="60"/>
+				<component_image this="922BCA30-94F9-4AF7-A8A3-559462DE78B6" uniqueguid="922BCA30-94F9-4AF7-A8A3-559462DE78B6" imagepath="ui/skins/default/button_rectangular_backplate_d.png" width="254" height="60"/>
+			</componentimages>
+			<states>
+				<active this="6E06B339-8C26-4486-9EC0-CFBA9D36761A" name="active" width="160" height="40" font_m_font_name="Iskra-Bold" font_m_size="18" font_m_colour="#FFFFFFFF" font_m_leading="1" fontcat_name="subheader--sidepanel_header" interactive="true" uniqueguid="6E06B339-8C26-4486-9EC0-CFBA9D36761A" stateeditordisplaypos="20.00,24.00">
+					<imagemetrics>
+						<image componentimage="CB1A6DFE-36E2-4C4E-8109-488B03CF4D35" width="160" height="40" tile="true" margin="10.00,10.00,10.00,10.00"/>
+						<image componentimage="6725B473-74F2-452A-BA79-D8FCC763D21E" width="160" height="40" tile="true" shader_name="overlay_t0"/>
+					</imagemetrics>
+					<transitionmap>
+						<transition transition_m_target_state="BBA2C2BD-7E35-4F6C-A39E-AA3D80F2DFDB" transition_m_transition_time="200" transition_m_interpolation_property_mask="64"/>
+					</transitionmap>
+				</active>
+				<down this="A1762A2B-0A3A-42EB-A128-D558D5FB8ED5" name="down" width="160" height="40" font_m_font_name="Numbers" font_m_size="15" font_m_colour="#FFFFFFFF" font_m_leading="1" fontcat_name="numbers" interactive="true" textshadervars="0.30,0.00,0.00,0.00" uniqueguid="A1762A2B-0A3A-42EB-A128-D558D5FB8ED5" stateeditordisplaypos="145.00,219.00">
+					<imagemetrics>
+						<image componentimage="CB1A6DFE-36E2-4C4E-8109-488B03CF4D35" width="160" height="40" tile="true" margin="10.00,10.00,10.00,10.00"/>
+					</imagemetrics>
+					<transitionmap>
+						<transition index="3" transition_m_target_state="BBA2C2BD-7E35-4F6C-A39E-AA3D80F2DFDB"/>
+						<transition index="1" transition_m_target_state="CE93BC05-A17A-45CD-A70A-B6AE177339AC"/>
+					</transitionmap>
+				</down>
+				<down_off this="CE93BC05-A17A-45CD-A70A-B6AE177339AC" name="down_off" width="160" height="40" font_m_font_name="Iskra-Bold" font_m_size="18" font_m_colour="#FFFFFFFF" font_m_leading="1" fontcat_name="subheader--sidepanel_header" interactive="true" uniqueguid="CE93BC05-A17A-45CD-A70A-B6AE177339AC" stateeditordisplaypos="29.00,319.00">
+					<imagemetrics>
+						<image componentimage="CB1A6DFE-36E2-4C4E-8109-488B03CF4D35" width="160" height="40" tile="true" margin="10.00,10.00,10.00,10.00"/>
+						<image componentimage="6725B473-74F2-452A-BA79-D8FCC763D21E" width="160" height="40" tile="true" shader_name="overlay_t0"/>
+					</imagemetrics>
+					<transitionmap>
+						<transition transition_m_target_state="A1762A2B-0A3A-42EB-A128-D558D5FB8ED5"/>
+						<transition index="8" transition_m_target_state="6E06B339-8C26-4486-9EC0-CFBA9D36761A"/>
+					</transitionmap>
+				</down_off>
+				<hover this="BBA2C2BD-7E35-4F6C-A39E-AA3D80F2DFDB" name="hover" width="160" height="40" font_m_font_name="Iskra-Bold" font_m_size="18" font_m_colour="#FFFFFFFF" font_m_leading="1" fontcat_name="subheader--sidepanel_header" interactive="true" textshadervars="0.30,0.00,0.00,0.00" uniqueguid="BBA2C2BD-7E35-4F6C-A39E-AA3D80F2DFDB" stateeditordisplaypos="137.00,126.00">
+					<imagemetrics>
+						<image componentimage="CB1A6DFE-36E2-4C4E-8109-488B03CF4D35" width="160" height="40" tile="true" margin="10.00,10.00,10.00,10.00"/>
+						<image componentimage="88ECD467-FEC4-4FFB-B7E5-3C820A7089A3" width="141" height="40" colour="#FFFFFF64" shader_name="normal_t0"/>
+						<image componentimage="6725B473-74F2-452A-BA79-D8FCC763D21E" width="160" height="40" tile="true" shadertechnique_vars="2.00,0.00,0.00,0.00" shader_name="overlay_t0"/>
+						<image componentimage="F1CD76CB-76DE-4D9E-9939-C21EBF4A4307" width="160" height="40"/>
+						<image componentimage="474191DA-016C-48DA-A059-76DF80807BBC" width="160" height="40" tile="true" margin="10.00,10.00,10.00,10.00" shadertechnique_vars="0.40,0.00,0.00,0.00" shader_name="brighten_t0"/>
+					</imagemetrics>
+					<transitionmap>
+						<transition index="1" transition_m_target_state="6E06B339-8C26-4486-9EC0-CFBA9D36761A" transition_m_transition_time="200" transition_m_interpolation_property_mask="64"/>
+						<transition index="2" transition_m_target_state="A1762A2B-0A3A-42EB-A128-D558D5FB8ED5"/>
+					</transitionmap>
+				</hover>
+				<inactive this="E690DD1D-85E9-4AC6-A354-68EAA24D51F4" name="inactive" width="160" height="40" soundcategory="UI_GBL_TMP_Square_Medium_Button_Locked" font_m_font_name="Iskra-Bold" font_m_size="18" font_m_colour="#FFFFFFFF" font_m_leading="1" fontcat_name="subheader--sidepanel_header" interactive="true" disabled="true" uniqueguid="E690DD1D-85E9-4AC6-A354-68EAA24D51F4">
+					<imagemetrics>
+						<image componentimage="922BCA30-94F9-4AF7-A8A3-559462DE78B6" width="160" height="40" tile="true" margin="10.00,10.00,10.00,10.00"/>
+						<image componentimage="6725B473-74F2-452A-BA79-D8FCC763D21E" width="160" height="40" tile="true" shader_name="overlay_t0"/>
+					</imagemetrics>
+				</inactive>
+			</states>
+		</square_large_text_button>
+	<button_txt this="A01B7921-BBE5-4CD3-95F8-75E1A2DFB0C8" id="button_txt" offset="0.00,0.00" allowverticalresize="false" docking="Center" component_anchor_point="0.50,0.50" priority="60" tooltipslocalised="true" uniqueguid="A01B7921-BBE5-4CD3-95F8-75E1A2DFB0C8" isrelativeresize="false" currentstate="89740A1B-0427-469D-82B2-21D6A80038EC" defaultstate="89740A1B-0427-469D-82B2-21D6A80038EC">
+			<states>
+				<active this="89740A1B-0427-469D-82B2-21D6A80038EC" name="active" width="160" height="50" text="" textvalign="Center" texthalign="Center" textxoffset="5.00,5.00" texthbehaviour="Wrap" font_m_font_name="Iskra-Bold" font_m_size="15" font_m_colour="#FFFFFFFF" fontcat_name="item_header" uniqueguid="89740A1B-0427-469D-82B2-21D6A80038EC" interactive="false"/>
+				<down this="D889DC21-6C5C-4B48-BC47-F1BD0C3017DB" name="down" width="160" height="50" text="" textvalign="Center" texthalign="Center" textxoffset="5.00,5.00" texthbehaviour="Wrap" font_m_font_name="Iskra-Bold" font_m_size="15" font_m_colour="#FFFFFFFF" fontcat_name="item_header" text_shader_name="set_greyscale_t0" textshadervars="0.00,0.50,0.00,0.00" uniqueguid="D889DC21-6C5C-4B48-BC47-F1BD0C3017DB" interactive="false"/>
+				<inactive this="E2046772-78CF-454A-9564-09EFDF8716E5" name="inactive" width="160" height="50" text="" textvalign="Center" texthalign="Center" textxoffset="5.00,5.00" texthbehaviour="Wrap" font_m_font_name="Iskra-Bold" font_m_size="15" font_m_colour="#5B5959FF" fontcat_name="button_text_disable" uniqueguid="E2046772-78CF-454A-9564-09EFDF8716E5" interactive="false"/>
+			</states>
+		</button_txt>
+		</components>
+  <localisation_changes/>
+</layout>

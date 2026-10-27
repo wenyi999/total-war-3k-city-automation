@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<layout version="135" comment="TK_AUTO native widget hierarchy; empty preview root" precache_condition="">
+  <hierarchy>
+    <root this="51E18D44-9DBA-4CAA-84FA-CC599A772519">
+      <popup_background this="7C22A4F6-4CFD-4BBE-BFBB-E385E543263A"/>
+    </root>
+  </hierarchy>
+  <components><root this="51E18D44-9DBA-4CAA-84FA-CC599A772519" id="root" tooltipslocalised="true" uniqueguid="51E18D44-9DBA-4CAA-84FA-CC599A772519" currentstate="42877828-FCB7-46C9-8A3F-F034ACBF9148" defaultstate="42877828-FCB7-46C9-8A3F-F034ACBF9148">
+			<states>
+				<newstate this="42877828-FCB7-46C9-8A3F-F034ACBF9148" name="NewState" width="1" height="1" interactive="false" uniqueguid="42877828-FCB7-46C9-8A3F-F034ACBF9148">
+					</newstate>
+			</states>
+		</root>
+		<popup_background this="7C22A4F6-4CFD-4BBE-BFBB-E385E543263A" id="popup_background" docking="None" component_anchor_point="0.00,0.00" tooltipslocalised="true" uniqueguid="7C22A4F6-4CFD-4BBE-BFBB-E385E543263A" currentstate="56CCE9DE-2C08-4043-B09E-C0DD6E76833A" defaultstate="56CCE9DE-2C08-4043-B09E-C0DD6E76833A" priority="640" offset="0.00,0.00" allowhorizontalresize="true" allowverticalresize="true" isrelativeresize="false">
+			<componentimages>
+				<component_image this="D81477DE-6A31-4B4B-B1F4-7497195CB7C2" uniqueguid="D81477DE-6A31-4B4B-B1F4-7497195CB7C2" imagepath="ui/skins/default/button_rectangular_backplate.png" width="254" height="60"/>
+			</componentimages>
+			<states>
+				<newstate this="56CCE9DE-2C08-4043-B09E-C0DD6E76833A" name="NewState" width="1040" height="720" texthbehaviour="Never split" interactive="true" uniqueguid="56CCE9DE-2C08-4043-B09E-C0DD6E76833A">
+					<imagemetrics>
+						<image componentimage="D81477DE-6A31-4B4B-B1F4-7497195CB7C2" width="1040" height="720" tile="true" margin="12.00,12.00,12.00,12.00" colour="#FFFFFFFF"/>
+					</imagemetrics>
+				</newstate>
+			</states>
+		</popup_background>
+		</components>
+  <localisation_changes/>
+</layout>

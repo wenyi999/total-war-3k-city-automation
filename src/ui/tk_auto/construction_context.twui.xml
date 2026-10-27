@@ -1,0 +1,351 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<layout version="136" comment="TK_AUTO reads native construction lists without UI list cloning; explicitly stored slot/province scope and armed native order receivers" precache_condition="">
+  <hierarchy>
+    <root this="F50C2D6E-294A-4F10-BA0E-9D176AA28DCF">
+      <tk_auto_slot_scope this="9A3DAD24-FBEB-494E-89D3-BE85FF0D1757">
+        <native_slot_id this="52749FBA-90B4-4886-9E49-A3F7586CCF90"/>
+        <native_settlement_id this="7F0A6F99-B436-4545-9053-285A3DA1C62F"/>
+        <native_province_id this="2C0BF877-A275-4A40-B803-E55C6B5213E0"/>
+        <native_upgrades_count this="54861C91-172C-4462-800D-47E2660AD772"/>
+        <native_upgrades_item this="D384597F-7076-4A63-80F5-E181B45D5F6E"/>
+        <native_conversions_count this="B34EE47A-8CE7-4A54-97A4-68F9E09B5B79"/>
+        <native_conversions_item this="DC150C1D-E17B-4703-ABCD-D9E2127682B9"/>
+        <native_downgrades_count this="757AFDCE-AC47-4523-AFE4-B523B9B89297"/>
+        <native_downgrades_item this="A1E4780A-CD3E-47D3-A240-D223583542C0"/>
+        <native_chains_count this="F6D454FE-E311-4D60-A8B8-C61C71CBCF5E"/>
+        <native_chains_item this="F6E91786-F9E7-4DC7-B827-DAD51907C07E"/>
+        <native_groups_count this="CA476E52-FA39-4CA0-A725-33B038AE0DC7"/>
+        <native_groups_item this="1A5B44E0-311F-461F-8F77-3E71E6CFA1A1"/>
+        <tk_auto_native_record_probe this="8AAA2FF6-130A-4599-B964-A630E35F402C">
+          <native_key this="5FA19375-5A92-414E-A7C3-6237291E7A94"/>
+          <native_record_id this="61E7B09E-3DF5-40BB-98DD-D1EA64EFFEE6"/>
+          <native_option_slot_id this="A002EA04-B8DC-4F2A-82F4-6E39E6B3D778"/>
+          <native_cost this="87BDBD1E-D8BC-4B1A-8DBB-225DC19B2CCE"/>
+          <native_cost_bare this="A1E76F43-BA6D-44FD-9922-4E741A858170"/>
+          <native_food this="B36C12D2-A2CE-4568-99F2-92A431A85146"/>
+          <native_food_native this="8513A6CD-4D75-4BA3-9183-6B28B92767AA"/>
+          <native_allowed_build this="C93A8A98-653E-48B0-8848-5C7A4C94124E"/>
+          <native_allowed_convert this="0B54C856-AD05-43D5-AB99-8C4EDB7F0835"/>
+          <native_allowed_downgrade this="1406DE03-20CE-4B65-9554-FD0982F2C7C0"/>
+        <native_food_effect_count this="2414CF81-15DD-44B0-899F-3692DEA08BE4"/></tk_auto_native_record_probe>
+        <tk_auto_native_commit_build this="B1A3840F-DEB3-4F6D-A82D-615A1156C4B5"/>
+        <tk_auto_native_commit_downgrade this="CD2E24B2-9849-40DD-955D-D4469626FF27"/>
+      </tk_auto_slot_scope>
+    </root>
+  </hierarchy>
+  <components>
+    <root this="F50C2D6E-294A-4F10-BA0E-9D176AA28DCF" id="root" uniqueguid="F50C2D6E-294A-4F10-BA0E-9D176AA28DCF" currentstate="7BC9030A-61CC-4F95-892D-3820ABC5F358" defaultstate="7BC9030A-61CC-4F95-892D-3820ABC5F358" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="7BC9030A-61CC-4F95-892D-3820ABC5F358" name="NewState" uniqueguid="7BC9030A-61CC-4F95-892D-3820ABC5F358" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+    </root>
+    <tk_auto_slot_scope this="9A3DAD24-FBEB-494E-89D3-BE85FF0D1757" id="tk_auto_slot_scope" uniqueguid="9A3DAD24-FBEB-494E-89D3-BE85FF0D1757" currentstate="7CB133F5-B354-4C50-B346-1D375184AF94" defaultstate="7CB133F5-B354-4C50-B346-1D375184AF94" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="7CB133F5-B354-4C50-B346-1D375184AF94" name="NewState" uniqueguid="7CB133F5-B354-4C50-B346-1D375184AF94" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+      </callbackwithcontextlist>
+    </tk_auto_slot_scope>
+    <native_slot_id this="52749FBA-90B4-4886-9E49-A3F7586CCF90" id="native_slot_id" uniqueguid="52749FBA-90B4-4886-9E49-A3F7586CCF90" currentstate="F21A8AC8-0A96-469F-9A2C-1FDDDE79FF8A" defaultstate="F21A8AC8-0A96-469F-9A2C-1FDDDE79FF8A" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="F21A8AC8-0A96-469F-9A2C-1FDDDE79FF8A" name="NewState" uniqueguid="F21A8AC8-0A96-469F-9A2C-1FDDDE79FF8A" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignRegionSlot" context_function_id="GetContextObjectId(this)"/>
+      </callbackwithcontextlist>
+    </native_slot_id>
+    <native_settlement_id this="7F0A6F99-B436-4545-9053-285A3DA1C62F" id="native_settlement_id" uniqueguid="7F0A6F99-B436-4545-9053-285A3DA1C62F" currentstate="30CC52BE-AFFE-4F01-AD06-01A0C9DFAF49" defaultstate="30CC52BE-AFFE-4F01-AD06-01A0C9DFAF49" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="30CC52BE-AFFE-4F01-AD06-01A0C9DFAF49" name="NewState" uniqueguid="30CC52BE-AFFE-4F01-AD06-01A0C9DFAF49" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignSettlement" context_function_id="GetContextObjectId(this)"/>
+      </callbackwithcontextlist>
+    </native_settlement_id>
+    <native_province_id this="2C0BF877-A275-4A40-B803-E55C6B5213E0" id="native_province_id" uniqueguid="2C0BF877-A275-4A40-B803-E55C6B5213E0" currentstate="2E99BE94-29F6-4D29-95CC-1F74E7A9F4FA" defaultstate="2E99BE94-29F6-4D29-95CC-1F74E7A9F4FA" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="2E99BE94-29F6-4D29-95CC-1F74E7A9F4FA" name="NewState" uniqueguid="2E99BE94-29F6-4D29-95CC-1F74E7A9F4FA" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignProvince" context_function_id="GetContextObjectId(this)"/>
+      </callbackwithcontextlist>
+    </native_province_id>
+    <native_upgrades_count this="54861C91-172C-4462-800D-47E2660AD772" id="native_upgrades_count" uniqueguid="54861C91-172C-4462-800D-47E2660AD772" currentstate="9AD3872E-F4B7-4A4C-8665-C04B313F3EAC" defaultstate="9AD3872E-F4B7-4A4C-8665-C04B313F3EAC" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="9AD3872E-F4B7-4A4C-8665-C04B313F3EAC" name="NewState" uniqueguid="9AD3872E-F4B7-4A4C-8665-C04B313F3EAC" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignRegionSlot" context_function_id="PossibleUpgradeWithoutConversionsList.Size"/>
+      </callbackwithcontextlist>
+    </native_upgrades_count>
+    <native_upgrades_item this="D384597F-7076-4A63-80F5-E181B45D5F6E" id="native_upgrades_item" uniqueguid="D384597F-7076-4A63-80F5-E181B45D5F6E" currentstate="ED3A2D6D-BD46-48CF-86D0-B6F862660390" defaultstate="ED3A2D6D-BD46-48CF-86D0-B6F862660390" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="ED3A2D6D-BD46-48CF-86D0-B6F862660390" name="NewState" uniqueguid="ED3A2D6D-BD46-48CF-86D0-B6F862660390" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignRegionSlot" context_function_id="GetIfElse(ToNumber(Component(&quot;tk_auto_construction_context&quot;).GetProperty(&quot;tk_auto_index&quot;)) &lt; PossibleUpgradeWithoutConversionsList.Size, PossibleUpgradeWithoutConversionsList.At(ToNumber(Component(&quot;tk_auto_construction_context&quot;).GetProperty(&quot;tk_auto_index&quot;))).Key, &quot;&quot;)"/>
+      </callbackwithcontextlist>
+    </native_upgrades_item>
+    <native_conversions_count this="B34EE47A-8CE7-4A54-97A4-68F9E09B5B79" id="native_conversions_count" uniqueguid="B34EE47A-8CE7-4A54-97A4-68F9E09B5B79" currentstate="73E89AD9-1E85-432A-AF12-B1156E1828B4" defaultstate="73E89AD9-1E85-432A-AF12-B1156E1828B4" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="73E89AD9-1E85-432A-AF12-B1156E1828B4" name="NewState" uniqueguid="73E89AD9-1E85-432A-AF12-B1156E1828B4" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignRegionSlot" context_function_id="PossibleUpgradeOnlyConversionsList.Size"/>
+      </callbackwithcontextlist>
+    </native_conversions_count>
+    <native_conversions_item this="DC150C1D-E17B-4703-ABCD-D9E2127682B9" id="native_conversions_item" uniqueguid="DC150C1D-E17B-4703-ABCD-D9E2127682B9" currentstate="96550BA8-BEDA-489B-8BB6-A81D54A296F4" defaultstate="96550BA8-BEDA-489B-8BB6-A81D54A296F4" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="96550BA8-BEDA-489B-8BB6-A81D54A296F4" name="NewState" uniqueguid="96550BA8-BEDA-489B-8BB6-A81D54A296F4" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignRegionSlot" context_function_id="GetIfElse(ToNumber(Component(&quot;tk_auto_construction_context&quot;).GetProperty(&quot;tk_auto_index&quot;)) &lt; PossibleUpgradeOnlyConversionsList.Size, PossibleUpgradeOnlyConversionsList.At(ToNumber(Component(&quot;tk_auto_construction_context&quot;).GetProperty(&quot;tk_auto_index&quot;))).Key, &quot;&quot;)"/>
+      </callbackwithcontextlist>
+    </native_conversions_item>
+    <native_downgrades_count this="757AFDCE-AC47-4523-AFE4-B523B9B89297" id="native_downgrades_count" uniqueguid="757AFDCE-AC47-4523-AFE4-B523B9B89297" currentstate="1106E7ED-E660-43B5-BFFA-10D367459B78" defaultstate="1106E7ED-E660-43B5-BFFA-10D367459B78" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="1106E7ED-E660-43B5-BFFA-10D367459B78" name="NewState" uniqueguid="1106E7ED-E660-43B5-BFFA-10D367459B78" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignRegionSlot" context_function_id="PossibleDowngradeList.Size"/>
+      </callbackwithcontextlist>
+    </native_downgrades_count>
+    <native_downgrades_item this="A1E4780A-CD3E-47D3-A240-D223583542C0" id="native_downgrades_item" uniqueguid="A1E4780A-CD3E-47D3-A240-D223583542C0" currentstate="1C4ED5F7-464C-4003-9FF9-AD50136DEE08" defaultstate="1C4ED5F7-464C-4003-9FF9-AD50136DEE08" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="1C4ED5F7-464C-4003-9FF9-AD50136DEE08" name="NewState" uniqueguid="1C4ED5F7-464C-4003-9FF9-AD50136DEE08" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignRegionSlot" context_function_id="GetIfElse(ToNumber(Component(&quot;tk_auto_construction_context&quot;).GetProperty(&quot;tk_auto_index&quot;)) &lt; PossibleDowngradeList.Size, PossibleDowngradeList.At(ToNumber(Component(&quot;tk_auto_construction_context&quot;).GetProperty(&quot;tk_auto_index&quot;))).Key, &quot;&quot;)"/>
+      </callbackwithcontextlist>
+    </native_downgrades_item>
+    <native_chains_count this="F6D454FE-E311-4D60-A8B8-C61C71CBCF5E" id="native_chains_count" uniqueguid="F6D454FE-E311-4D60-A8B8-C61C71CBCF5E" currentstate="F01D04B1-EA63-494F-A5AD-C9EC6545A002" defaultstate="F01D04B1-EA63-494F-A5AD-C9EC6545A002" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="F01D04B1-EA63-494F-A5AD-C9EC6545A002" name="NewState" uniqueguid="F01D04B1-EA63-494F-A5AD-C9EC6545A002" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignRegionSlot" context_function_id="PossibleBuildingChainsList.Size"/>
+      </callbackwithcontextlist>
+    </native_chains_count>
+    <native_chains_item this="F6E91786-F9E7-4DC7-B827-DAD51907C07E" id="native_chains_item" uniqueguid="F6E91786-F9E7-4DC7-B827-DAD51907C07E" currentstate="49B719B7-1DC9-424C-8AF4-1DFBEE00584F" defaultstate="49B719B7-1DC9-424C-8AF4-1DFBEE00584F" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="49B719B7-1DC9-424C-8AF4-1DFBEE00584F" name="NewState" uniqueguid="49B719B7-1DC9-424C-8AF4-1DFBEE00584F" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignRegionSlot" context_function_id="GetIfElse(ToNumber(Component(&quot;tk_auto_construction_context&quot;).GetProperty(&quot;tk_auto_index&quot;)) &lt; PossibleBuildingChainsList.Size, PossibleBuildingChainsList.At(ToNumber(Component(&quot;tk_auto_construction_context&quot;).GetProperty(&quot;tk_auto_index&quot;))).Key, &quot;&quot;)"/>
+      </callbackwithcontextlist>
+    </native_chains_item>
+    <native_groups_count this="CA476E52-FA39-4CA0-A725-33B038AE0DC7" id="native_groups_count" uniqueguid="CA476E52-FA39-4CA0-A725-33B038AE0DC7" currentstate="D383E565-9038-4463-9B16-378E4319153F" defaultstate="D383E565-9038-4463-9B16-378E4319153F" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="D383E565-9038-4463-9B16-378E4319153F" name="NewState" uniqueguid="D383E565-9038-4463-9B16-378E4319153F" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignRegionSlot" context_function_id="PossibleBuildingGroupList.Size"/>
+      </callbackwithcontextlist>
+    </native_groups_count>
+    <native_groups_item this="1A5B44E0-311F-461F-8F77-3E71E6CFA1A1" id="native_groups_item" uniqueguid="1A5B44E0-311F-461F-8F77-3E71E6CFA1A1" currentstate="46189A1C-14E3-4EDC-893E-3AB6B5D1D0A8" defaultstate="46189A1C-14E3-4EDC-893E-3AB6B5D1D0A8" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="46189A1C-14E3-4EDC-893E-3AB6B5D1D0A8" name="NewState" uniqueguid="46189A1C-14E3-4EDC-893E-3AB6B5D1D0A8" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignRegionSlot" context_function_id="GetIfElse(ToNumber(Component(&quot;tk_auto_construction_context&quot;).GetProperty(&quot;tk_auto_index&quot;)) &lt; PossibleBuildingGroupList.Size, GetIfElse(PossibleBuildingGroupList.At(ToNumber(Component(&quot;tk_auto_construction_context&quot;).GetProperty(&quot;tk_auto_index&quot;))).IsResourceBuildingGroup, &quot;1&quot;, &quot;0&quot;), &quot;&quot;)"/>
+      </callbackwithcontextlist>
+    </native_groups_item>
+    <tk_auto_native_record_probe this="8AAA2FF6-130A-4599-B964-A630E35F402C" id="tk_auto_native_record_probe" uniqueguid="8AAA2FF6-130A-4599-B964-A630E35F402C" currentstate="C1A32443-E874-403C-85AD-13B074AE67CD" defaultstate="C1A32443-E874-403C-85AD-13B074AE67CD" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="C1A32443-E874-403C-85AD-13B074AE67CD" name="NewState" uniqueguid="C1A32443-E874-403C-85AD-13B074AE67CD" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoBuildingLevelRecord"/>
+      </callbackwithcontextlist>
+    </tk_auto_native_record_probe>
+    <native_key this="5FA19375-5A92-414E-A7C3-6237291E7A94" id="native_key" uniqueguid="5FA19375-5A92-414E-A7C3-6237291E7A94" currentstate="C112D9D2-EF88-4AC1-BA13-388179A18000" defaultstate="C112D9D2-EF88-4AC1-BA13-388179A18000" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="C112D9D2-EF88-4AC1-BA13-388179A18000" name="NewState" uniqueguid="C112D9D2-EF88-4AC1-BA13-388179A18000" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoBuildingLevelRecord" context_function_id="Key"/>
+      </callbackwithcontextlist>
+    </native_key>
+    <native_record_id this="61E7B09E-3DF5-40BB-98DD-D1EA64EFFEE6" id="native_record_id" uniqueguid="61E7B09E-3DF5-40BB-98DD-D1EA64EFFEE6" currentstate="7E0F8B31-8C29-4007-8258-1988BE5F9BCA" defaultstate="7E0F8B31-8C29-4007-8258-1988BE5F9BCA" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="7E0F8B31-8C29-4007-8258-1988BE5F9BCA" name="NewState" uniqueguid="7E0F8B31-8C29-4007-8258-1988BE5F9BCA" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoBuildingLevelRecord" context_function_id="GetContextObjectId(this)"/>
+      </callbackwithcontextlist>
+    </native_record_id>
+    <native_option_slot_id this="A002EA04-B8DC-4F2A-82F4-6E39E6B3D778" id="native_option_slot_id" uniqueguid="A002EA04-B8DC-4F2A-82F4-6E39E6B3D778" currentstate="A157B05F-E376-4E3F-9220-74D1A84ED936" defaultstate="A157B05F-E376-4E3F-9220-74D1A84ED936" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="A157B05F-E376-4E3F-9220-74D1A84ED936" name="NewState" uniqueguid="A157B05F-E376-4E3F-9220-74D1A84ED936" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoCampaignRegionSlot" context_function_id="GetContextObjectId(this)"/>
+      </callbackwithcontextlist>
+    </native_option_slot_id>
+    <native_cost this="87BDBD1E-D8BC-4B1A-8DBB-225DC19B2CCE" id="native_cost" uniqueguid="87BDBD1E-D8BC-4B1A-8DBB-225DC19B2CCE" currentstate="54F714A1-9B58-4BDC-9BBD-246A5EDD20B6" defaultstate="54F714A1-9B58-4BDC-9BBD-246A5EDD20B6" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="54F714A1-9B58-4BDC-9BBD-246A5EDD20B6" name="NewState" uniqueguid="54F714A1-9B58-4BDC-9BBD-246A5EDD20B6" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoBuildingLevelRecord" context_function_id="CreateCost(StoredContext(&quot;CcoCampaignSettlement&quot;))"/>
+      </callbackwithcontextlist>
+    </native_cost>
+    <native_cost_bare this="A1E76F43-BA6D-44FD-9922-4E741A858170" id="native_cost_bare" uniqueguid="A1E76F43-BA6D-44FD-9922-4E741A858170" currentstate="0BBAB505-3F35-48E6-ABA6-6107317F3366" defaultstate="0BBAB505-3F35-48E6-ABA6-6107317F3366" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="0BBAB505-3F35-48E6-ABA6-6107317F3366" name="NewState" uniqueguid="0BBAB505-3F35-48E6-ABA6-6107317F3366" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoBuildingLevelRecord" context_function_id="CreateCost"/>
+      </callbackwithcontextlist>
+    </native_cost_bare>
+    <native_food this="B36C12D2-A2CE-4568-99F2-92A431A85146" id="native_food" uniqueguid="B36C12D2-A2CE-4568-99F2-92A431A85146" currentstate="C9ADD815-EC2E-48C0-9F9D-A0934767FE1C" defaultstate="C9ADD815-EC2E-48C0-9F9D-A0934767FE1C" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="C9ADD815-EC2E-48C0-9F9D-A0934767FE1C" name="NewState" uniqueguid="C9ADD815-EC2E-48C0-9F9D-A0934767FE1C" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoBuildingLevelRecord" context_function_id="EffectList.Filter(EffectKey == &quot;3k_main_effect_province_food_consumption_distribution&quot; || EffectKey == &quot;3k_main_effect_province_food_abs_sold_markets&quot; || EffectKey == &quot;3k_main_effect_province_food_abs_farming&quot; || EffectKey == &quot;3k_main_effect_province_food_abs_fishing&quot; || EffectKey == &quot;3k_main_effect_province_food_abs_foraging&quot; || EffectKey == &quot;3k_dlc05_effect_province_food_abs_banditry&quot;).Sum(Value)"/>
+      </callbackwithcontextlist>
+    </native_food>
+    <native_food_native this="8513A6CD-4D75-4BA3-9183-6B28B92767AA" id="native_food_native" uniqueguid="8513A6CD-4D75-4BA3-9183-6B28B92767AA" currentstate="3CE7F2D0-B4BE-468D-A213-D133FAD0E53F" defaultstate="3CE7F2D0-B4BE-468D-A213-D133FAD0E53F" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="3CE7F2D0-B4BE-468D-A213-D133FAD0E53F" name="NewState" uniqueguid="3CE7F2D0-B4BE-468D-A213-D133FAD0E53F" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoBuildingLevelRecord" context_function_id="FoodCost"/>
+      </callbackwithcontextlist>
+    </native_food_native>
+    <native_allowed_build this="C93A8A98-653E-48B0-8848-5C7A4C94124E" id="native_allowed_build" uniqueguid="C93A8A98-653E-48B0-8848-5C7A4C94124E" currentstate="8D1F3B2C-8852-4B73-B941-43B486E02B86" defaultstate="8D1F3B2C-8852-4B73-B941-43B486E02B86" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="8D1F3B2C-8852-4B73-B941-43B486E02B86" name="NewState" uniqueguid="8D1F3B2C-8852-4B73-B941-43B486E02B86" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoBuildingLevelRecord" context_function_id="GetIfElse(CanBuildInCurrentSlot, &quot;1&quot;, &quot;0&quot;)"/>
+      </callbackwithcontextlist>
+    </native_allowed_build>
+    <native_allowed_convert this="0B54C856-AD05-43D5-AB99-8C4EDB7F0835" id="native_allowed_convert" uniqueguid="0B54C856-AD05-43D5-AB99-8C4EDB7F0835" currentstate="BAE59F0A-51C1-4AC1-B366-DB093A7972FA" defaultstate="BAE59F0A-51C1-4AC1-B366-DB093A7972FA" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="BAE59F0A-51C1-4AC1-B366-DB093A7972FA" name="NewState" uniqueguid="BAE59F0A-51C1-4AC1-B366-DB093A7972FA" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoBuildingLevelRecord" context_function_id="GetIfElse(CanConvertToInCurrentSlot, &quot;1&quot;, &quot;0&quot;)"/>
+      </callbackwithcontextlist>
+    </native_allowed_convert>
+    <native_allowed_downgrade this="1406DE03-20CE-4B65-9554-FD0982F2C7C0" id="native_allowed_downgrade" uniqueguid="1406DE03-20CE-4B65-9554-FD0982F2C7C0" currentstate="76CB9687-5F88-4370-858B-D1BA642D6EB9" defaultstate="76CB9687-5F88-4370-858B-D1BA642D6EB9" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="76CB9687-5F88-4370-858B-D1BA642D6EB9" name="NewState" uniqueguid="76CB9687-5F88-4370-858B-D1BA642D6EB9" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoBuildingLevelRecord" context_function_id="GetIfElse(CanDowngradeToInCurrentSlot, &quot;1&quot;, &quot;0&quot;)"/>
+      </callbackwithcontextlist>
+    </native_allowed_downgrade>
+    <tk_auto_native_commit_build this="B1A3840F-DEB3-4F6D-A82D-615A1156C4B5" id="tk_auto_native_commit_build" uniqueguid="B1A3840F-DEB3-4F6D-A82D-615A1156C4B5" currentstate="856A88B0-EE5D-4B35-B519-257769008947" defaultstate="856A88B0-EE5D-4B35-B519-257769008947" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="856A88B0-EE5D-4B35-B519-257769008947" name="NewState" uniqueguid="856A88B0-EE5D-4B35-B519-257769008947" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextCommandGiverOnContextSet" context_object_id="CcoBuildingLevelRecord" context_function_id="DoIf(self.GetProperty(&quot;tk_auto_armed&quot;) == &quot;1&quot; &amp;&amp; GetContextObjectId(StoredContext(&quot;CcoCampaignRegionSlot&quot;)) == self.GetProperty(&quot;tk_auto_expected_slot&quot;) &amp;&amp; (CanBuildInCurrentSlot || CanConvertToInCurrentSlot), Do(self.SetProperty(&quot;tk_auto_armed&quot;, &quot;0&quot;), self.SetProperty(&quot;tk_auto_dispatched&quot;, self.GetProperty(&quot;tk_auto_ticket&quot;)), ConstructInCurrentSlot))"/>
+      </callbackwithcontextlist>
+    </tk_auto_native_commit_build>
+    <tk_auto_native_commit_downgrade this="CD2E24B2-9849-40DD-955D-D4469626FF27" id="tk_auto_native_commit_downgrade" uniqueguid="CD2E24B2-9849-40DD-955D-D4469626FF27" currentstate="3933E4E5-C62A-4346-A96D-1071B1DA2724" defaultstate="3933E4E5-C62A-4346-A96D-1071B1DA2724" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="3933E4E5-C62A-4346-A96D-1071B1DA2724" name="NewState" uniqueguid="3933E4E5-C62A-4346-A96D-1071B1DA2724" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextCommandGiverOnContextSet" context_object_id="CcoBuildingLevelRecord" context_function_id="DoIf(self.GetProperty(&quot;tk_auto_armed&quot;) == &quot;1&quot; &amp;&amp; GetContextObjectId(StoredContext(&quot;CcoCampaignRegionSlot&quot;)) == self.GetProperty(&quot;tk_auto_expected_slot&quot;) &amp;&amp; CanDowngradeToInCurrentSlot, Do(self.SetProperty(&quot;tk_auto_armed&quot;, &quot;0&quot;), self.SetProperty(&quot;tk_auto_dispatched&quot;, self.GetProperty(&quot;tk_auto_ticket&quot;)), DismantleInCurrentSlot))"/>
+      </callbackwithcontextlist>
+    </tk_auto_native_commit_downgrade>
+  <native_food_effect_count this="2414CF81-15DD-44B0-899F-3692DEA08BE4" id="native_food_effect_count" uniqueguid="2414CF81-15DD-44B0-899F-3692DEA08BE4" currentstate="C9ADD815-EC2E-48C0-9F9D-A0934767FE1C" defaultstate="C9ADD815-EC2E-48C0-9F9D-A0934767FE1C" docking="None" offset="0.00,0.00" tooltipslocalised="false" updatewhennotvisible="true">
+      <states>
+        <newstate this="C9ADD815-EC2E-48C0-9F9D-A0934767FE1C" name="NewState" uniqueguid="C9ADD815-EC2E-48C0-9F9D-A0934767FE1C" width="1" height="1" text="" interactive="false" font_m_font_name="Numbers" font_m_size="1" font_m_colour="#00000000" texthbehaviour="Never split"/>
+      </states>
+      <callbackwithcontextlist>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignRegionSlot"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignSettlement"/>
+        <callback_with_context callback_id="ContextObjectStore" context_object_id="CcoCampaignProvince"/>
+        <callback_with_context callback_id="ContextTextLabel" context_object_id="CcoBuildingLevelRecord" context_function_id="EffectList.Filter(EffectKey == &quot;3k_main_effect_province_food_consumption_distribution&quot; || EffectKey == &quot;3k_main_effect_province_food_abs_sold_markets&quot; || EffectKey == &quot;3k_main_effect_province_food_abs_farming&quot; || EffectKey == &quot;3k_main_effect_province_food_abs_fishing&quot; || EffectKey == &quot;3k_main_effect_province_food_abs_foraging&quot; || EffectKey == &quot;3k_dlc05_effect_province_food_abs_banditry&quot;).Size"/>
+      </callbackwithcontextlist>
+    </native_food_effect_count>
+    </components>
+  <localisation_changes/>
+</layout>

@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<layout version="135" comment="TK_AUTO native widget hierarchy; empty preview root" precache_condition="">
+  <hierarchy>
+    <root this="D9E347A0-530B-43E0-90BB-708158ED3E76">
+      <button_txt this="B0A676EE-C26B-4665-817C-5665A3E5AD33"/>
+    </root>
+  </hierarchy>
+  <components><root this="D9E347A0-530B-43E0-90BB-708158ED3E76" id="root" tooltipslocalised="true" uniqueguid="D9E347A0-530B-43E0-90BB-708158ED3E76" currentstate="9F893846-69F5-4FB1-AE14-8116EB03C4E3" defaultstate="9F893846-69F5-4FB1-AE14-8116EB03C4E3">
+			<states>
+				<newstate this="9F893846-69F5-4FB1-AE14-8116EB03C4E3" name="NewState" width="1" height="1" interactive="false" uniqueguid="9F893846-69F5-4FB1-AE14-8116EB03C4E3">
+					</newstate>
+			</states>
+		</root>
+		<button_txt this="B0A676EE-C26B-4665-817C-5665A3E5AD33" id="button_txt" offset="0.00,0.00" allowverticalresize="true" docking="None" component_anchor_point="0.00,0.00" priority="670" tooltipslocalised="true" uniqueguid="B0A676EE-C26B-4665-817C-5665A3E5AD33" isrelativeresize="false" currentstate="76C58265-B848-40FE-BA08-00C948DEF2AE" defaultstate="76C58265-B848-40FE-BA08-00C948DEF2AE" allowhorizontalresize="true">
+			<states>
+				<active this="76C58265-B848-40FE-BA08-00C948DEF2AE" name="active" width="400" height="30" text="" textvalign="Center" texthalign="Left" textxoffset="5.00,5.00" texthbehaviour="Wrap" font_m_font_name="Iskra-Bold" font_m_size="15" font_m_colour="#FFFFFFFF" fontcat_name="item_header" uniqueguid="76C58265-B848-40FE-BA08-00C948DEF2AE" interactive="false"/>
+				<down this="DD2B3819-B786-4739-AD93-79D12AA1E779" name="down" width="400" height="30" text="" textvalign="Center" texthalign="Left" textxoffset="5.00,5.00" texthbehaviour="Wrap" font_m_font_name="Iskra-Bold" font_m_size="15" font_m_colour="#FFFFFFFF" fontcat_name="item_header" text_shader_name="set_greyscale_t0" textshadervars="0.00,0.50,0.00,0.00" uniqueguid="DD2B3819-B786-4739-AD93-79D12AA1E779" interactive="false"/>
+				<inactive this="14E6B296-C0B2-499A-B51D-5BC0FEC8CFDA" name="inactive" width="400" height="30" text="" textvalign="Center" texthalign="Left" textxoffset="5.00,5.00" texthbehaviour="Wrap" font_m_font_name="Iskra-Bold" font_m_size="15" font_m_colour="#5B5959FF" fontcat_name="button_text_disable" uniqueguid="14E6B296-C0B2-499A-B51D-5BC0FEC8CFDA" interactive="false"/>
+			</states>
+		</button_txt>
+		</components>
+  <localisation_changes/>
+</layout>
