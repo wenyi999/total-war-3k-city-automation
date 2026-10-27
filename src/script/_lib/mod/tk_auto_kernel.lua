@@ -24,6 +24,8 @@ end
 function K.L(key) return tostring(key) end
 
 function K.read(expr)
+    -- Per-pass circuit breaker: failed native CCO reads must never cascade.
+    if K.city_bridge_fault then return nil end
     -- CampaignRoot is a global UI symbol, not a CCO creatable from a string id.
     local aliases = {IsPlayersTurn="CampaignRoot.IsPlayersTurn", IsMultiplayer="CampaignRoot.IsMultiplayer",
         CampaignKey="CampaignRoot.CurrentCampaignKey"}
@@ -34,7 +36,12 @@ function K.read(expr)
     local ok, value = pcall(function() return effect.get_context_value(expression) end)
     if traced then K.runtime_probe("read_after_"..K.read_count) end
     if ok then return value end
-    K.warn("read:" .. expr, "Cannot read " .. expr .. ": " .. tostring(value))
+    if K.city_pass_active then
+        K.city_bridge_fault=true
+        K.log("BRIDGE_CIRCUIT trip: "..tostring(expr).." error="..tostring(value))
+    else
+        K.warn("read:" .. expr, "Cannot read " .. expr .. ": " .. tostring(value))
+    end
     return nil
 end
 
@@ -49,12 +56,14 @@ function K.bool(expr)
 end
 
 function K.command(expr)
+    if K.city_bridge_fault then return false end
     local ok, result = pcall(function() return effect.call_context_command(expr) end)
     if not ok then K.warn("command:" .. expr, "Command failed: " .. tostring(result)) end
     return ok and result ~= false
 end
 
 function K.context_command(kind,id,expr)
+    if K.city_bridge_fault then return false end
     -- Pin a cached native context, rather than repeatedly constructing objects
     -- while following a global expression. Used for transient skill choices.
     local ok,result=pcall(function() return effect.call_context_command(kind,tostring(id),expr) end)

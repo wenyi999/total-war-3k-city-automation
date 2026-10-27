@@ -1074,6 +1074,18 @@ local function food_total() return K.number('PlayersFaction.PooledResourceContex
 local step
 local function finish(suppress_rerun)
     local run=C.run
+    if K.city_bridge_fault then
+        K.log("BRIDGE_CIRCUIT stopped pass: reason="..tostring(run and run.reason).." submitted="..tostring(run and run.actions or 0))
+        K.city_pass_active=false
+        K.city_bridge_fault=false
+        C.busy=false
+        C.run=nil
+        C.rerun=false
+        C.force_pending=0 -- require new explicit click, never auto-loop on failure
+        C.ui_message="读档上下文异常；已停止本轮施工，请查看日志"
+        return
+    end
+    K.city_pass_active=false
     C.busy=false
     if run then
         K.log("Cities ("..tostring(run.reason).."): settlements="..#run.cities..
@@ -1173,6 +1185,7 @@ local function bridge_healthy()
 end
 
 local function process_next(run)
+    if K.city_bridge_fault then run.bridge_failed=true;return nil end
     if C.run~=run or not C.state.enabled or run.actions>=48 or not available(run.synchronous) then return nil end
     if not bridge_healthy() then
         run.bridge_failed=true
@@ -1509,6 +1522,8 @@ function C.run_now(synchronous,reason)
     local run={cities=cities,snapshots={},index=1,actions=0,confirmed=0,start_cash=math.min(treasury(),carry_cash or treasury()),start_food=food_total(),spent=0,
         reserved_food=0,synchronous=synchronous,reason=reason or "settings",reasons={},acted={}}
     C.run=run;C.busy=true
+    K.city_bridge_fault=false
+    K.city_pass_active=true
     if not bridge_healthy() then
         K.log("BRIDGE_GUARD abort_before_scan: native campaign context unavailable")
         C.pending=true
